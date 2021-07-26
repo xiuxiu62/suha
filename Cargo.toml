@@ -1,0 +1,8 @@
+[package]
+name = "suha"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+tui = "0.15.0"
+termion = "1.5.6"
