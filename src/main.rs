@@ -12,12 +12,14 @@ use tui::{backend::TermionBackend, Terminal};
 
 mod event;
 
-fn main() -> Result<(), io::Error> {
-    if let Err(e) = build() {
-        eprintln!("{}", e);
-        process::exit(1);
+fn main() {
+    match build() {
+        Err(e) => {
+            eprintln!("{}", e);
+            process::exit(1);
+        }
+        Ok(()) => process::exit(0),
     }
-    Ok(())
 }
 
 fn build() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +39,7 @@ fn build() -> Result<(), Box<dyn std::error::Error>> {
                 .split(f.size());
             let text = Paragraph::new(format!("{}", buf));
             f.render_widget(text, chunks[0]);
-        });
+        })?;
 
         // Handle input
         if let Event::Input(input) = events.next()? {
