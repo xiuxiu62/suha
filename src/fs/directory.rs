@@ -107,29 +107,22 @@ impl Directory {
 }
 
 fn read_dir_list(path: &path::Path, options: &DisplayOptions) -> io::Result<Vec<Entry>> {
-    let filter_fn = if options.show_hidden {
-        show_hidden
-    } else {
-        no_hidden
-    };
-    let results: Vec<Entry> = fs::read_dir(path)?
-        .filter(filter_fn)
+    let results = fs::read_dir(path)?
+        .filter(|res| {
+            if options.show_hidden {
+                true
+            } else {
+                match res {
+                    Err(_) => true,
+                    Ok(entry) => {
+                        let file_name = entry.file_name();
+                        let lossy_string = file_name.as_os_str().to_string_lossy();
+                        !lossy_string.starts_with('.')
+                    }
+                }
+            }
+        })
         .filter_map(|res| Entry::from(&res.ok()?, options.show_icons).ok())
         .collect();
     Ok(results)
-}
-
-const fn show_hidden(_: &Result<fs::DirEntry, io::Error>) -> bool {
-    true
-}
-
-fn no_hidden(result: &Result<fs::DirEntry, io::Error>) -> bool {
-    match result {
-        Err(_) => true,
-        Ok(entry) => {
-            let file_name = entry.file_name();
-            let lossy_string = file_name.as_os_str().to_string_lossy();
-            !lossy_string.starts_with('.')
-        }
-    }
 }
