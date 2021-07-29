@@ -6,7 +6,7 @@ use std::process;
 
 use event::Event;
 use event::Events;
-use fs::History;
+use fs::Cache;
 use options::DisplayOptions;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::layout::Constraint;
@@ -64,10 +64,10 @@ fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
-    let mut history = History::new();
+    let mut session_cache = Cache::new();
     let options = DisplayOptions::default();
-    let path = Path::new("/");
-    history.populate_to_root(path, &options)?;
-    println!("{:?}", history.inner);
+    let path = Path::new("/home/xiuxiu/development/suha/src");
+    session_cache.populate_to_root(path, &options)?;
+    println!("{}", session_cache);
     Ok(())
 }

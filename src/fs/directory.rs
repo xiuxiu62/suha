@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::fs::DirEntry;
 use std::slice::{Iter, IterMut};
 use std::{fs, io, path};
@@ -103,4 +104,14 @@ fn read_dir_list(path: &path::Path, options: &DisplayOptions) -> io::Result<Vec<
         .filter_map(|res| Entry::from(&res.ok()?, options.show_icons).ok())
         .collect();
     Ok(results)
+}
+
+impl Display for Directory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut buf = String::new();
+        self.inner
+            .iter()
+            .for_each(|e| buf += format!("{}\n", e).as_str());
+        write!(f, "{}", buf)
+    }
 }
