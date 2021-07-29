@@ -1,10 +1,13 @@
 #![allow(dead_code)]
 
 use std::io;
+use std::path::Path;
 use std::process;
 
 use event::Event;
 use event::Events;
+use fs::History;
+use options::DisplayOptions;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::layout::Constraint;
 use tui::layout::Direction;
@@ -17,7 +20,8 @@ mod fs;
 mod options;
 
 fn main() {
-    match build() {
+    match test_fs_module() {
+        // match test_ui_module() {
         Err(e) => {
             eprintln!("{}", e);
             process::exit(1);
@@ -26,7 +30,7 @@ fn main() {
     }
 }
 
-fn build() -> Result<(), Box<dyn std::error::Error>> {
+fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = AlternateScreen::from(MouseTerminal::from(io::stdout().into_raw_mode()?));
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
@@ -41,7 +45,7 @@ fn build() -> Result<(), Box<dyn std::error::Error>> {
                 .margin(2)
                 .constraints([Constraint::Percentage(100)].as_ref())
                 .split(f.size());
-            let text = Paragraph::new(format!("{}", buf));
+            let text = Paragraph::new(format!("{:?}", buf));
             f.render_widget(text, chunks[0]);
         })?;
 
@@ -56,5 +60,14 @@ fn build() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    Ok(())
+}
+
+fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
+    let mut history = History::new();
+    let options = DisplayOptions::default();
+    let path = Path::new("/");
+    history.populate_to_root(path, &options)?;
+    println!("{:?}", history.inner);
     Ok(())
 }
