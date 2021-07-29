@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::io;
 use std::process;
 
@@ -11,6 +13,8 @@ use tui::widgets::Paragraph;
 use tui::{backend::TermionBackend, Terminal};
 
 mod event;
+mod fs;
+mod options;
 
 fn main() {
     match build() {
