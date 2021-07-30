@@ -6,27 +6,13 @@ use std::path::{Path, PathBuf};
 use super::{Directory, Entry};
 use crate::options::DisplayOptions;
 
-// #[derive(Debug, Clone)]
-// pub struct CacheItem {
-// inner: Directory,
-// priority: usize,
-// }
+// Note: we could consider a priority queue for dropping unused directories.
+// Depth could be checked, where the root and any directories up to a depth
+// of 2 won't be dropped, as they will likely be repopulated.
 
 #[derive(Debug, Clone)]
 pub struct Cache {
     pub inner: HashMap<PathBuf, Directory>,
-    // pub inner: HashMap<PathBuf, CacheItem>,
-    // limit: usize,
-}
-
-impl Display for Cache {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut buf = String::new();
-        self.inner
-            .iter()
-            .for_each(|(_, d)| buf += format!("{}\n", d).as_str());
-        write!(f, "{}", buf)
-    }
 }
 
 impl Cache {
@@ -62,6 +48,20 @@ impl Cache {
             }
         }
         Ok(())
+    }
+
+    pub fn clear(&mut self) {
+        self.inner.clear()
+    }
+}
+
+impl Display for Cache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut buf = String::new();
+        self.inner
+            .iter()
+            .for_each(|(_, d)| buf += format!("{}\n", d).as_str());
+        write!(f, "{}", buf)
     }
 }
 
