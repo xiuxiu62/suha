@@ -48,11 +48,25 @@ impl Entry {
     pub fn preview(&self, lines: usize) -> Result<String, Box<dyn std::error::Error>> {
         match self.metadata.file_type {
             metadata::FileType::File => {
-                let raw = read_file_bytes(&self.path, lines)?;
+                let raw = self.read_n_lines(lines)?;
                 Ok(String::from_utf8(raw)?)
             }
             metadata::FileType::Directory(size) => Ok(format!("dir size: {}", size)),
         }
+    }
+
+    fn read_n_lines(&self, lines: usize) -> io::Result<Vec<u8>> {
+        let file = fs::File::open(&self.path)?;
+        let line_reader = BufReader::new(file).lines();
+
+        let mut buf: Vec<u8> = Vec::new();
+        for (i, line) in line_reader.enumerate() {
+            if i > lines {
+                break;
+            }
+            buf.append(&mut (line.unwrap() + "\n").as_bytes().to_vec());
+        }
+        Ok(buf)
     }
 }
 
@@ -60,18 +74,4 @@ impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
     }
-}
-
-fn read_file_bytes(path: &Path, lines: usize) -> io::Result<Vec<u8>> {
-    let file = fs::File::open(path)?;
-    let line_reader = BufReader::new(file).lines();
-
-    let mut buf: Vec<u8> = Vec::new();
-    for (i, line) in line_reader.enumerate() {
-        if i > lines {
-            break;
-        }
-        buf.append(&mut (line.unwrap() + "\n").as_bytes().to_vec());
-    }
-    Ok(buf)
 }

@@ -70,19 +70,19 @@ fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {
 
 fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
     let mut session_cache = Cache::new();
-    let options = DisplayOptions::new(false, false);
-    let path = Path::new("/home/xiuxiu/development/suha");
-    session_cache.populate_to_root(path, &options)?;
+    let options = DisplayOptions::new(true, false);
+    let path = Path::new("/home/xiuxiu/.config/emacs/src");
 
-    let dir = &session_cache.inner.get(&path.to_path_buf()).unwrap().inner;
-    dir.iter().for_each(|e| {
-        if let Ok(preview) = e.preview(100) {
+    session_cache.populate_to_root(path, &options)?;
+    // println!("{}", session_cache.to_string().trim_end());
+
+    let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
+    println!("{:?}\n", path);
+    dir.inner.iter().for_each(|e| {
+        if let Ok(preview) = e.preview(1000) {
             println!("\"{}\"\n{}\n", e.label, preview);
         }
     });
 
-    // println!("{}", session_cache.to_string().trim_end());
-
-    // println!()
     Ok(())
 }
