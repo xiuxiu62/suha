@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
+use std::convert::TryFrom;
+use std::fs::DirEntry;
 use std::io;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process;
 
 use event::Event;
@@ -14,6 +17,8 @@ use tui::layout::Direction;
 use tui::layout::Layout;
 use tui::widgets::Paragraph;
 use tui::{backend::TermionBackend, Terminal};
+
+use crate::fs::Entry;
 
 mod event;
 mod fs;
@@ -65,9 +70,19 @@ fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {
 
 fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
     let mut session_cache = Cache::new();
-    let options = DisplayOptions::default();
-    let path = Path::new("/home/xiuxiu/development/suha/src");
+    let options = DisplayOptions::new(false, false);
+    let path = Path::new("/home/xiuxiu/development/suha");
     session_cache.populate_to_root(path, &options)?;
-    println!("{}", session_cache);
+
+    let dir = &session_cache.inner.get(&path.to_path_buf()).unwrap().inner;
+    dir.iter().for_each(|e| {
+        if let Ok(preview) = e.preview(100) {
+            println!("\"{}\"\n{}\n", e.label, preview);
+        }
+    });
+
+    // println!("{}", session_cache.to_string().trim_end());
+
+    // println!()
     Ok(())
 }

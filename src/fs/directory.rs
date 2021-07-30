@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::fs::DirEntry;
+
 use std::slice::{Iter, IterMut};
 use std::{fs, io, path};
 
@@ -112,6 +112,6 @@ impl Display for Directory {
         self.inner
             .iter()
             .for_each(|e| buf += format!("{}\n", e).as_str());
-        write!(f, "{}", buf)
+        write!(f, "{:?}\n{}", self.path, buf)
     }
 }

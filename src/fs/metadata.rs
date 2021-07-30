@@ -1,13 +1,13 @@
 use std::{fs, io, path, time};
 
-#[derive(Debug, Clone, Copy)]
-enum FileType {
+#[derive(Debug, Clone)]
+pub enum FileType {
     File,
     Directory(usize),
 }
 
 #[derive(Debug, Clone)]
-enum LinkType {
+pub enum LinkType {
     Normal,
     Symlink(String),
 }
@@ -24,7 +24,7 @@ pub struct Metadata {
     len: u64,
     pub modified: time::SystemTime,
     permissions: fs::Permissions,
-    file_type: FileType,
+    pub file_type: FileType,
     link_type: LinkType,
     #[cfg(unix)]
     pub unix_data: UnixData,

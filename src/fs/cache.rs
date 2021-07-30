@@ -1,7 +1,7 @@
 use std::collections::{hash_map, HashMap};
 use std::fmt::Display;
+use std::io;
 use std::path::{Path, PathBuf};
-use std::{default, io};
 
 use super::{Directory, Entry};
 use crate::options::DisplayOptions;
