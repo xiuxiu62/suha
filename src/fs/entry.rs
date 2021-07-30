@@ -1,10 +1,13 @@
 use std::{
     fmt, fs,
     io::{self, BufRead, BufReader},
-    path::{self, Path},
+    path::{self, PathBuf},
 };
 
-use super::{metadata, Metadata};
+use super::{
+    metadata::{self, FileType},
+    Metadata,
+};
 
 #[derive(Debug, Clone)]
 pub struct Entry {
@@ -22,10 +25,15 @@ impl Entry {
             .as_os_str()
             .to_string_lossy()
             .to_string();
-        let label = name.clone();
+
         let path = dir_entry.path();
-        let flagged = false;
         let metadata = Metadata::from(&path)?;
+        let flagged = false;
+        let label = if show_icons {
+            icon_label(&name, &path, &metadata)?
+        } else {
+            name.clone()
+        };
 
         Ok(Self {
             name,
@@ -72,6 +80,35 @@ impl Entry {
 
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.label)
     }
+}
+
+fn icon_label(name: &String, path: &PathBuf, md: &Metadata) -> io::Result<String> {
+    use super::icons::*;
+
+    let icon = match md.file_type {
+        FileType::Directory(_) => DIR_NODE_EXACT_MATCHES
+            .get(name.as_str())
+            .cloned()
+            .unwrap_or(DEFAULT_DIR),
+        _ => FILE_NODE_EXACT_MATCHES
+            .get(name.as_str())
+            .cloned()
+            .unwrap_or(match path.extension() {
+                Some(s) => FILE_NODE_EXTENSIONS
+                    .get(match s.to_str() {
+                        Some(s) => s,
+                        None => {
+                            return Err(std::io::Error::new(
+                                std::io::ErrorKind::Other,
+                                "Failed converting OsStr to str",
+                            ))
+                        }
+                    })
+                    .unwrap_or(&DEFAULT_FILE),
+                None => DEFAULT_FILE,
+            }),
+    };
+    Ok(format!("{} {}", icon, name))
 }
