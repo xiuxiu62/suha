@@ -3,13 +3,11 @@
 mod event;
 mod fs;
 mod option;
-mod ui;
+// mod ui;
 mod terminal;
 
-use std::io::stdout;
 use std::{io, path::Path, process};
 
-use crossterm::{cursor, execute, terminal};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::layout::{Constraint, Direction, Layout};
 use tui::widgets::Paragraph;
@@ -20,25 +18,16 @@ use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
 fn main() {
-    // match test_fs_module() {
-    match test_crossterm() {
+    let time = std::time::Instant::now();
+    match test_fs_module() {
+        // match test_crossterm() {
         // match test_ui_module() {
         Err(e) => {
             eprintln!("{}", e);
-            process::exit(1);
         }
-        Ok(()) => process::exit(0),
+        Ok(()) => {}
     }
-}
-
-fn test_crossterm() -> Result<(), Box<dyn std::error::Error>> {
-    let mut stdout = stdout().into_raw_mode()?;
-    execute!(stdout, terminal::EnterAlternateScreen)?;
-    execute!(stdout, cursor::Hide)?;
-    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
-
-    execute!(stdout, terminal::LeaveAlternateScreen)?;
-    Ok(())
+    println!("took {:.5} micros", time.elapsed().as_micros())
 }
 
 fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {

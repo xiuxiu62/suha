@@ -88,27 +88,8 @@ fn icon_label(name: &String, path: &PathBuf, md: &Metadata) -> io::Result<String
     use super::icon::*;
 
     let icon = match md.file_type {
-        FileType::Directory(_) => DIR_NODE_EXACT_MATCHES
-            .get(name.as_str())
-            .cloned()
-            .unwrap_or(DEFAULT_DIR),
-        _ => FILE_NODE_EXACT_MATCHES
-            .get(name.as_str())
-            .cloned()
-            .unwrap_or(match path.extension() {
-                Some(s) => FILE_NODE_EXTENSIONS
-                    .get(match s.to_str() {
-                        Some(s) => s,
-                        None => {
-                            return Err(std::io::Error::new(
-                                std::io::ErrorKind::Other,
-                                "Failed converting OsStr to str",
-                            ))
-                        }
-                    })
-                    .unwrap_or(&DEFAULT_FILE),
-                None => DEFAULT_FILE,
-            }),
+        FileType::Directory(_) => dir_node_exact_matches(name.as_str()),
+        FileType::File => file_node_exact_matches(name.as_str(), path),
     };
     Ok(format!("{} {}", icon, name))
 }
