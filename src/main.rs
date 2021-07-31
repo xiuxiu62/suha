@@ -1,34 +1,27 @@
 #![allow(dead_code)]
 
-#[macro_use]
-extern crate phf;
+mod event;
+mod fs;
+mod option;
+mod ui;
+mod terminal;
 
-use std::convert::TryFrom;
-use std::fs::DirEntry;
-use std::io;
-use std::path::Path;
-use std::path::PathBuf;
-use std::process;
+use std::io::stdout;
+use std::{io, path::Path, process};
 
-use event::Event;
-use event::Events;
-use fs::Cache;
-use options::DisplayOptions;
+use crossterm::{cursor, execute, terminal};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
-use tui::layout::Constraint;
-use tui::layout::Direction;
-use tui::layout::Layout;
+use tui::layout::{Constraint, Direction, Layout};
 use tui::widgets::Paragraph;
 use tui::{backend::TermionBackend, Terminal};
 
-use crate::fs::Entry;
-
-mod event;
-mod fs;
-mod options;
+use crate::event::{Event, Events};
+use crate::fs::Cache;
+use crate::option::DisplayOptions;
 
 fn main() {
-    match test_fs_module() {
+    // match test_fs_module() {
+    match test_crossterm() {
         // match test_ui_module() {
         Err(e) => {
             eprintln!("{}", e);
@@ -36,6 +29,16 @@ fn main() {
         }
         Ok(()) => process::exit(0),
     }
+}
+
+fn test_crossterm() -> Result<(), Box<dyn std::error::Error>> {
+    let mut stdout = stdout().into_raw_mode()?;
+    execute!(stdout, terminal::EnterAlternateScreen)?;
+    execute!(stdout, cursor::Hide)?;
+    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
+
+    execute!(stdout, terminal::LeaveAlternateScreen)?;
+    Ok(())
 }
 
 fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {

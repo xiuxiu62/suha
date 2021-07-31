@@ -85,7 +85,7 @@ impl fmt::Display for Entry {
 }
 
 fn icon_label(name: &String, path: &PathBuf, md: &Metadata) -> io::Result<String> {
-    use super::icons::*;
+    use super::icon::*;
 
     let icon = match md.file_type {
         FileType::Directory(_) => DIR_NODE_EXACT_MATCHES

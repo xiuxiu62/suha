@@ -4,7 +4,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use super::{Directory, Entry};
-use crate::options::DisplayOptions;
+use crate::option::DisplayOptions;
 
 // Note: we could consider a priority queue for dropping unused directories.
 // Depth could be checked, where the root and any directories up to a depth

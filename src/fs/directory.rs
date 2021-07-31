@@ -4,7 +4,7 @@ use std::slice::{Iter, IterMut};
 use std::{fs, io, path};
 
 use super::{Entry, Metadata};
-use crate::options::DisplayOptions;
+use crate::option::DisplayOptions;
 
 #[derive(Debug, Clone)]
 pub struct Directory {

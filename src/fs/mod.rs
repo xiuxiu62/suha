@@ -1,7 +1,7 @@
 mod cache;
 mod directory;
 mod entry;
-mod icons;
+mod icon;
 mod metadata;
 
 pub use self::cache::Cache;

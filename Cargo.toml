@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+crossbeam-channel = "0.5.1"
+crossterm = "0.20.0"
+phf = { version = "0.9.0", features = ["macros"] }
 tui = "0.15.0"
 termion = "1.5.6"
 unicode-width = "0.1.8"
-phf = { version = "0.9.0", features = ["macros"] }
-# phf = { version = "0.7.24", features = ["macros"] }
