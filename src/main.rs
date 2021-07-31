@@ -1,75 +1,83 @@
 #![allow(dead_code)]
 
-mod event;
+// mod event;
 mod fs;
 mod option;
 // mod ui;
-mod terminal;
 
-use std::{io, path::Path, process};
-
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use std::sync::{Arc, Mutex};
+use std::{io, path::Path, thread};
 use tui::layout::{Constraint, Direction, Layout};
-use tui::widgets::Paragraph;
-use tui::{backend::TermionBackend, Terminal};
+use tui::Terminal;
+use tui::{backend::CrosstermBackend, widgets::Paragraph};
 
-use crate::event::{Event, Events};
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
-fn main() {
-    let time = std::time::Instant::now();
-    match test_fs_module() {
-        // match test_crossterm() {
-        // match test_ui_module() {
-        Err(e) => {
-            eprintln!("{}", e);
-        }
-        Ok(()) => {}
-    }
-    println!("took {:.5} micros", time.elapsed().as_micros())
-}
+use crossbeam_channel::Receiver;
+use crossterm::{cursor, event::Event, execute, terminal};
 
-fn test_ui_module() -> Result<(), Box<dyn std::error::Error>> {
-    let stdout = AlternateScreen::from(MouseTerminal::from(io::stdout().into_raw_mode()?));
-    let backend = TermionBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
-    let events = Events::new(None);
-    let mut buf = String::new();
-
-    loop {
-        terminal.draw(|f| {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .margin(2)
-                .constraints([Constraint::Percentage(100)].as_ref())
-                .split(f.size());
-            let text = Paragraph::new(format!("{:?}", buf));
-            f.render_widget(text, chunks[0]);
-        })?;
-
-        // Handle input
-        if let Event::Input(input) = events.next()? {
-            match input {
-                Key::Char('q') => break,
-                Key::Char(key) => {
-                    buf.push(key);
-                }
-                _ => {}
-            }
-        }
-    }
+pub fn setup() -> crossterm::Result<()> {
+    let mut stdout = io::stdout();
+    execute!(stdout, terminal::EnterAlternateScreen)?;
+    execute!(stdout, cursor::Hide)?;
+    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
+    terminal::enable_raw_mode()?;
     Ok(())
 }
 
-fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
-    let mut session_cache = Cache::new();
+pub fn cleanup() -> crossterm::Result<()> {
+    let mut stdout = io::stdout();
+    execute!(stdout, terminal::LeaveAlternateScreen)?;
+    terminal::disable_raw_mode()?;
+    Ok(())
+}
+
+pub struct Listener(Receiver<Event>);
+
+impl Listener {
+    pub fn new() -> Self {
+        let (tx, rx) = crossbeam_channel::unbounded();
+        thread::spawn(move || loop {
+            tx.send(crossterm::event::read().unwrap()).unwrap();
+        });
+        Self(rx)
+    }
+
+    pub fn get(&self) -> &Receiver<Event> {
+        &self.0
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let backend = CrosstermBackend::new(io::stdout());
+    let mut terminal = Terminal::new(backend)?;
+
+    let session_cache = Arc::from(Mutex::from(Cache::new()));
     let options = DisplayOptions::new(false, true);
     let path = Path::new("/home/xiuxiu/development/suha/src");
 
-    session_cache.populate_to_root(path, &options)?;
-    println!("{}", session_cache.to_string().trim_end());
+    {
+        session_cache
+            .lock()
+            .unwrap()
+            .populate_to_root(path, &options)?;
+    }
+
+    terminal.draw(move |f| {
+        let body = session_cache
+            .lock()
+            .unwrap()
+            .to_string()
+            .trim_end()
+            .to_string()
+            + "\n\n";
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Percentage(100)].as_ref())
+            .split(f.size());
+        f.render_widget(Paragraph::new(body), chunks[0]);
+    })?;
 
     // let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
     // println!("{:?}\n", path);
@@ -79,5 +87,6 @@ fn test_fs_module() -> Result<(), Box<dyn std::error::Error>> {
     //     }
     // });
 
+    cleanup()?;
     Ok(())
 }

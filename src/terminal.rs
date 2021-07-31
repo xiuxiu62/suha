@@ -17,7 +17,7 @@ pub fn setup() -> crossterm::Result<()> {
     Ok(())
 }
 
-pub fn cleanup(stdout: &mut Stdout) -> Result<(), Box<dyn std::error::Error>> {
+pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
     execute!(stdout, terminal::LeaveAlternateScreen)?;
     terminal::disable_raw_mode()?;
     Ok(())
