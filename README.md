@@ -14,21 +14,21 @@ but it still only does that and is very much under development.
 
 - [x] Core filesystem functionality 
 - [x] Implement display methods for directories and files
-- [] User interface
-  - [] Widget hierarchy and standardized design
-  - [] Abstracted frame buffer and rendering api
-  - [] Standardize a way to write unit and integration tests for views
-- [] Concurrent event handling for key, mouse, and resize events
-- [] Ensure smooth error handling and a clean exit (!!! cleanup terminal)
-- [] Configuration
-  - [] External config design and structure 
-  - [] Deserialization into option structs, for use in relevant sub modules
-- [] Build out auxilary functionallity
-  - [] Directory sorting
-  - [] Move, Copy, Delete
-  - [] ? Multi-select similar to how dired works 
-  - [] Searching
-  - [] Tab completion
+- [ ] User interface
+  - [ ] Widget hierarchy and standardized design
+  - [ ] Abstracted frame buffer and rendering api
+  - [ ] Standardize a way to write unit and integration tests for views
+- [ ] Concurrent event handling for key, mouse, and resize events
+- [ ] Ensure smooth error handling and a clean exit (!!! cleanup terminal)
+- [ ] Configuration
+  - [ ] External config design and structure 
+  - [ ] Deserialization into option structs, for use in relevant sub modules
+- [ ] Build out auxilary functionallity
+  - [ ] Directory sorting
+  - [ ] Move, Copy, Delete
+  - [ ] ? Multi-select similar to how dired works 
+  - [ ] Searching
+  - [ ] Tab completion
 
 ## Contributions
 
