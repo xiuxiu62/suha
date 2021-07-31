@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .populate_to_root(path, &options)?;
     }
 
-    terminal.draw(move |f| {
+    terminal.draw(|f| {
         let body = session_cache
             .lock()
             .unwrap()
