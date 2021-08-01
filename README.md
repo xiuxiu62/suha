@@ -1,5 +1,3 @@
-![Build Status](https://app.circleci.com/pipelines/github/justincremer/suha?branch=main)
-
 # SUHA - a cross platform terminal file manager
 
 As much as I enjoy lf and as little a need for this project as there is, it seems like fun.
