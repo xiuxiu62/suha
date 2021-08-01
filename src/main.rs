@@ -54,53 +54,55 @@ impl Listener {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     match args.len() {
-        2 => {
-            let mut stdout = setup()?;
-            {
-                let backend = CrosstermBackend::new(&mut stdout);
-                let mut terminal = Terminal::new(backend)?;
-
-                let session_cache = Arc::from(Mutex::from(Cache::new()));
-                let options = DisplayOptions::new(false, true);
-                let path = Path::new(&args[1]);
-
-                {
-                    session_cache
-                        .lock()
-                        .unwrap()
-                        .populate_to_root(path, &options)?;
-                }
-
-                terminal.draw(|f| {
-                    let body = session_cache
-                        .lock()
-                        .unwrap()
-                        .to_string()
-                        .trim_end()
-                        .to_string()
-                        + "\n\n";
-                    let chunks = Layout::default()
-                        .direction(Direction::Vertical)
-                        .constraints([Constraint::Percentage(100)].as_ref())
-                        .split(f.size());
-                    f.render_widget(Paragraph::new(body), chunks[0]);
-                })?;
-
-                // let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
-                // println!("{:?}\n", path);
-                // dir.inner.iter().for_each(|e| {
-                //     if let Ok(preview) = e.preview(1000) {
-                //         println!("\"{}\"\n{}\n", e.label, preview);
-                //     }
-                // });
-            }
-
-            thread::sleep(Duration::from_secs(3));
-            Ok(cleanup(&mut stdout)?)
-        }
+        2 => try_run(&args[1]),
         _ => {
             eprintln!("please provide a valid file path");
             Ok(())
         }
     }
 }
+
+fn try_run(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut stdout = setup()?;
+    {
+        let backend = CrosstermBackend::new(&mut stdout);
+        let mut terminal = Terminal::new(backend)?;
+
+        let session_cache = Arc::from(Mutex::from(Cache::new()));
+        let options = DisplayOptions::new(false, true);
+        let path = Path::new(path);
+
+        {
+            session_cache
+                .lock()
+                .unwrap()
+                .populate_to_root(path, &options)?;
+        }
+
+        terminal.draw(|f| {
+            let body = session_cache
+                .lock()
+                .unwrap()
+                .to_string()
+                .trim_end()
+                .to_string()
+                + "\n\n";
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(100)].as_ref())
+                .split(f.size());
+            f.render_widget(Paragraph::new(body), chunks[0]);
+        })?;
+    }
+
+    thread::sleep(Duration::from_secs(3));
+    Ok(cleanup(&mut stdout)?)
+}
+
+// let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
+// println!("{:?}\n", path);
+// dir.inner.iter().for_each(|e| {
+//     if let Ok(preview) = e.preview(1000) {
+//         println!("\"{}\"\n{}\n", e.label, preview);
+//     }
+// });
