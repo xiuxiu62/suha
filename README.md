@@ -1,4 +1,10 @@
 # SUHA - a cross platform terminal file manager
+[![Linux build](https://github.com/justincremer/suha/actions/workflows/linux-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/linux-main.yml)
+
+[![MacOS build](https://github.com/justincremer/suha/actions/workflows/mac-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/mac-main.yml)
+
+[![MacOS build](https://github.com/justincremer/suha/actions/workflows/windows-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/windows-main.yml)
+
 
 As much as I enjoy lf and as little a need for this project as there is, it seems like fun.
 Much of the core is based on Jeff Zhao's (kamiyaa) project, Joshuto, but I'm using crossterm
