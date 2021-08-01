@@ -1,4 +1,4 @@
-name: Linux build
+name: Windows build
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   check:
-    name: Rust Linux ${{ matrix.rust }}
+    name: Rust Windows ${{ matrix.rust }}
     runs-on: windows-latest
     strategy:
       matrix:
