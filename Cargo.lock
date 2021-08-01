@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "alphanumeric-sort"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20e59b2ccb4c1ffbbf45af6f493e16ac65a66981c85664f1587816c0b08cd698"
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -251,6 +257,7 @@ checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
 name = "suha"
 version = "0.1.0"
 dependencies = [
+ "alphanumeric-sort",
  "crossbeam-channel",
  "crossterm 0.20.0",
  "tui",
