@@ -6,7 +6,9 @@ mod option;
 // mod ui;
 
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use std::{io, path::Path, thread};
+
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
@@ -17,17 +19,16 @@ use crate::option::DisplayOptions;
 use crossbeam_channel::Receiver;
 use crossterm::{cursor, event::Event, execute, terminal};
 
-pub fn setup() -> crossterm::Result<()> {
+pub fn setup() -> crossterm::Result<io::Stdout> {
     let mut stdout = io::stdout();
     execute!(stdout, terminal::EnterAlternateScreen)?;
     execute!(stdout, cursor::Hide)?;
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     terminal::enable_raw_mode()?;
-    Ok(())
+    Ok(stdout)
 }
 
-pub fn cleanup() -> crossterm::Result<()> {
-    let mut stdout = io::stdout();
+pub fn cleanup(stdout: &mut io::Stdout) -> crossterm::Result<()> {
     execute!(stdout, terminal::LeaveAlternateScreen)?;
     terminal::disable_raw_mode()?;
     Ok(())
@@ -50,43 +51,47 @@ impl Listener {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let backend = CrosstermBackend::new(io::stdout());
-    let mut terminal = Terminal::new(backend)?;
-
-    let session_cache = Arc::from(Mutex::from(Cache::new()));
-    let options = DisplayOptions::new(false, true);
-    let path = Path::new("/home/xiuxiu/development/suha/src");
-
+    let mut stdout = setup()?;
     {
-        session_cache
-            .lock()
-            .unwrap()
-            .populate_to_root(path, &options)?;
+        let backend = CrosstermBackend::new(&mut stdout);
+        let mut terminal = Terminal::new(backend)?;
+
+        let session_cache = Arc::from(Mutex::from(Cache::new()));
+        let options = DisplayOptions::new(false, true);
+        let path = Path::new("/home/xiuxiu/development/suha/src");
+        // let path = Path::new("C:/Users/JustinCremer/development/suha");
+
+        {
+            session_cache
+                .lock()
+                .unwrap()
+                .populate_to_root(path, &options)?;
+        }
+
+        terminal.draw(|f| {
+            let body = session_cache
+                .lock()
+                .unwrap()
+                .to_string()
+                .trim_end()
+                .to_string()
+                + "\n\n";
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(100)].as_ref())
+                .split(f.size());
+            f.render_widget(Paragraph::new(body), chunks[0]);
+        })?;
+
+        // let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
+        // println!("{:?}\n", path);
+        // dir.inner.iter().for_each(|e| {
+        //     if let Ok(preview) = e.preview(1000) {
+        //         println!("\"{}\"\n{}\n", e.label, preview);
+        //     }
+        // });
     }
 
-    terminal.draw(|f| {
-        let body = session_cache
-            .lock()
-            .unwrap()
-            .to_string()
-            .trim_end()
-            .to_string()
-            + "\n\n";
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Percentage(100)].as_ref())
-            .split(f.size());
-        f.render_widget(Paragraph::new(body), chunks[0]);
-    })?;
-
-    // let dir = session_cache.inner.get(&path.to_path_buf()).unwrap();
-    // println!("{:?}\n", path);
-    // dir.inner.iter().for_each(|e| {
-    //     if let Ok(preview) = e.preview(1000) {
-    //         println!("\"{}\"\n{}\n", e.label, preview);
-    //     }
-    // });
-
-    cleanup()?;
-    Ok(())
+    thread::sleep(Duration::from_secs(3));
+    Ok(cleanup(&mut stdout)?)
 }

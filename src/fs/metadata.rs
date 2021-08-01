@@ -75,6 +75,7 @@ impl Metadata {
             permissions,
             file_type,
             link_type,
+            #[cfg(unix)]
             unix_data,
         })
     }
