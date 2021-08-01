@@ -1,4 +1,4 @@
-[![Build Status](https://app.circleci.com/pipelines/github/justincremer/suha?branch=main)
+[![Build Status](https://app.circleci.com/pipelines/github/justincremer/suha?branch=main)]
 
 # SUHA - a cross platform terminal file manager
 
