@@ -16,6 +16,7 @@ crossterm = { version = "0.20.0", features = ["event-stream"] }
 futures = "0.3.16"
 futures-core = { version = "0.3.16", optional = true, default-features = false }
 futures-timer = "3.0.2"
+structopt = "0.3.22"
 tokio = { version = "1.10.0", features = ["full"] }
 tui = { version = "0.15.0", default-features = false, features = ["crossterm"] }
 unicode-width = "0.1.8"

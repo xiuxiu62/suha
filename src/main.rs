@@ -63,7 +63,7 @@ async fn print_events() {
                         if event == Event::Key(KeyCode::Esc.into()) {
                             break;
                         }
-                    }
+                    },
                     Some(Err(e)) => println!("Error: {:?}\r", e),
                     None => break,
                 }
@@ -126,18 +126,23 @@ fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::error::E
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = setup()?;
     let args: Vec<String> = env::args().collect();
+
+    // TODO: replace with structopt
     if let 2 = args.len() {
         match args[1].as_str() {
             "-h" | "--help" => println!("{}", HELP),
             s => {
                 try_run(&mut stdout, Path::new(s))?;
+
                 print_events().await;
+
                 cleanup(&mut stdout)?;
                 return Ok(());
             }
         }
+    } else {
+        eprintln!("please provide a valid file path");
     }
 
-    eprintln!("please provide a valid file path");
     Ok(())
 }
