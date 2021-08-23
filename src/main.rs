@@ -11,30 +11,14 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{io, path::Path, thread};
 
+use crossbeam_channel::Receiver;
+use crossterm::{cursor, event::Event, execute, terminal};
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
 
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
-
-use crossbeam_channel::Receiver;
-use crossterm::{cursor, event::Event, execute, terminal};
-
-pub fn setup() -> crossterm::Result<io::Stdout> {
-    let mut stdout = io::stdout();
-    execute!(stdout, terminal::EnterAlternateScreen)?;
-    execute!(stdout, cursor::Hide)?;
-    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
-    terminal::enable_raw_mode()?;
-    Ok(stdout)
-}
-
-pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
-    execute!(stdout, terminal::LeaveAlternateScreen)?;
-    terminal::disable_raw_mode()?;
-    Ok(())
-}
 
 pub struct Listener(Receiver<Event>);
 
@@ -50,6 +34,24 @@ impl Listener {
     pub fn get(&self) -> &Receiver<Event> {
         &self.0
     }
+}
+
+pub fn setup() -> crossterm::Result<io::Stdout> {
+    let mut stdout = io::stdout();
+    execute!(
+        stdout,
+        terminal::EnterAlternateScreen,
+        cursor::Hide,
+        terminal::Clear(terminal::ClearType::All)
+    )?;
+    terminal::enable_raw_mode()?;
+    Ok(stdout)
+}
+
+pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
+    execute!(stdout, terminal::LeaveAlternateScreen)?;
+    terminal::disable_raw_mode()?;
+    Ok(())
 }
 
 fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -69,7 +71,7 @@ fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Er
     terminal.draw(|frame| {
         let path_str = path.to_str().unwrap();
         let body = format!(
-            "\n{}\n{}\n{}\n",
+            "{}\n{}\n{}\n",
             path_str,
             str::repeat("-", path_str.len()),
             session_cache
