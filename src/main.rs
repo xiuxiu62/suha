@@ -56,8 +56,9 @@ fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Er
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    // let event_listener = Arc::from(Listener::new().get());
     let session_cache = Arc::from(Mutex::from(Cache::new()));
-    let options = DisplayOptions::new(false, true);
+    let options = DisplayOptions::new(false, false);
     let path = Path::new(path);
 
     session_cache
@@ -66,16 +67,20 @@ fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Er
         .populate_to_root(path, &options)?;
 
     terminal.draw(|frame| {
-        let body = session_cache
-            .lock()
-            .unwrap()
-            .inner
-            .get(path)
-            .unwrap()
-            .to_string()
-            .trim_end()
-            .to_string()
-            + "\n\n";
+        let path_str = path.to_str().unwrap();
+        let body = format!(
+            "\n{}\n{}\n{}\n",
+            path_str,
+            str::repeat("-", path_str.len()),
+            session_cache
+                .lock()
+                .unwrap()
+                .inner
+                .get(path)
+                .unwrap()
+                .to_string()
+                .trim_end()
+        );
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
