@@ -69,20 +69,13 @@ fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Er
         .populate_to_root(path, &options)?;
 
     terminal.draw(|frame| {
-        let path_str = path.to_str().unwrap();
-        let body = format!(
-            "{}\n{}\n{}\n",
-            path_str,
-            str::repeat("-", path_str.len()),
-            session_cache
-                .lock()
-                .unwrap()
-                .inner
-                .get(path)
-                .unwrap()
-                .to_string()
-                .trim_end()
-        );
+        let body = session_cache
+            .lock()
+            .unwrap()
+            .inner
+            .get(path)
+            .unwrap()
+            .to_string();
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -98,15 +91,12 @@ fn try_run(stdout: &mut Stdout, path: &str) -> Result<(), Box<dyn std::error::Er
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = setup()?;
     let args: Vec<String> = env::args().collect();
-    match args.len() {
-        2 => {
-            try_run(&mut stdout, &args[1])?;
-            thread::sleep(Duration::from_secs(3));
-            cleanup(&mut stdout)?;
-        }
-        _ => {
-            eprintln!("please provide a valid file path");
-        }
+    if let 2 = args.len() {
+        try_run(&mut stdout, &args[1])?;
+        thread::sleep(Duration::from_secs(3));
+        cleanup(&mut stdout)?;
+    } else {
+        eprintln!("please provide a valid file path");
     }
 
     Ok(())

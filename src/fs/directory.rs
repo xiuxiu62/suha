@@ -112,6 +112,14 @@ impl Display for Directory {
         self.inner
             .iter()
             .for_each(|e| buf += format!("{}\n", e).as_str());
-        write!(f, "{:?}\n{}", self.path, buf)
+
+        let path_str = self.path.to_str().unwrap();
+        write!(
+            f,
+            "{}\n{}\n{}",
+            path_str,
+            str::repeat("-", path_str.len()),
+            buf
+        )
     }
 }
