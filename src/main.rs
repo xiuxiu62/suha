@@ -11,7 +11,6 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{env, thread};
 
-use crossbeam_channel::Receiver;
 use crossterm::cursor;
 use crossterm::{execute, terminal};
 use event::handle_event;
@@ -23,7 +22,7 @@ use crate::event::{Command, Worker};
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
-const FPS: u64 = 20;
+const FPS: u64 = 120;
 const HELP: &'static str = /* @MANSTART{suha} */
     r#"
 NAME
@@ -59,18 +58,21 @@ pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
 
 async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let session_cache = Arc::from(Mutex::from(Cache::new()));
-    let options = DisplayOptions::new(false, false);
+    let options = DisplayOptions::new(false, true);
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     let event_worker = Worker::new();
 
+    // Fill cache to from provided path to the root directory
     session_cache
         .lock()
         .unwrap()
         .populate_to_root(path, &options)?;
 
-    let receiver = event_worker.receiver.clone_receiver();
+    // Clone worker receiver for async sending
+    let receiver = event_worker.clone_receiver();
     loop {
+        // Draw frame buffer
         terminal.draw(|frame| {
             let body = session_cache
                 .lock()
@@ -88,6 +90,7 @@ async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::er
             frame.render_widget(Paragraph::new(body), chunks[0]);
         })?;
 
+        // Handle events
         if let Some(command) = handle_event(receiver.clone()).await {
             match command {
                 Command::Exit => break,
@@ -95,8 +98,6 @@ async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::er
                 _ => {}
             }
         };
-
-        print!("test ");
 
         // draw FPS frames / second
         thread::sleep(Duration::from_millis(1_000 / FPS));
@@ -112,7 +113,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         2 => {
             let mut stdout = setup()?;
             match args[1].as_str() {
-                "-h" | "--help" => println!("{}", HELP),
+                "-h" | "--help" => {
+                    println!("{}", HELP);
+                }
                 path => {
                     if let Err(e) = try_run(&mut stdout, Path::new(path)).await {
                         eprintln!("{}", e)

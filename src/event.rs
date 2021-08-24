@@ -48,7 +48,7 @@ impl Worker {
                                     exit = true;
                                 }
                             },
-                            Some(Err(e)) => eprintln!("Error: {:?}\r", e),
+                            Some(Err(e)) => eprintln!("Error: {:?}\n", e),
                             None => break,
                         }
                     },
@@ -67,27 +67,6 @@ impl Worker {
     pub fn clone_receiver(self) -> Receiver<Event> {
         self.receiver.clone()
     }
-
-    // pub async fn handle(self) -> Option<Command> {
-    //     if let Ok(event) = self.receiver.clone().try_recv() {
-    //         return match event {
-    //             Event::Key(key) => match key.code {
-    //                 KeyCode::Esc => Some(Command::Exit),
-    //                 KeyCode::Char('c') => {
-    //                     let body = format!("Cursor position: {:?}\r", position());
-    //                     Some(Command::Debug(body))
-    //                 }
-    //                 _ => {
-    //                     let body = format!("\rEvent::{:?}", key);
-    //                     Some(Command::Debug(body))
-    //                 }
-    //             },
-    //             _ => None,
-    //         };
-    //     };
-
-    //     None
-    // }
 }
 
 pub async fn handle_event(receiver: Receiver<Event>) -> Option<Command> {
@@ -100,7 +79,7 @@ pub async fn handle_event(receiver: Receiver<Event>) -> Option<Command> {
                     Some(Command::Debug(body))
                 }
                 _ => {
-                    let body = format!("\rEvent::{:?}", key);
+                    let body = format!("\rEvent::{:?}\r", key);
                     Some(Command::Debug(body))
                 }
             },
