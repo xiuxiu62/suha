@@ -6,7 +6,7 @@ mod option;
 // mod ui;
 
 use std::io::{self, Stdout};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{env, thread};
@@ -17,25 +17,20 @@ use event::handle_event;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
+use structopt::{StructOpt, clap::Shell};
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "suha")]
+pub struct Opt {
+    #[structopt(parse(from_os_str))]
+    file: Option<PathBuf>,
+}
 
 use crate::event::{Command, Worker};
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
 const FPS: u64 = 120;
-const HELP: &'static str = /* @MANSTART{suha} */
-    r#"
-NAME
-    suha - a file manager
-SYNOPSIS
-    suha [ -h | --help ]
-DESCRIPTION
-    suha is a cross platform terminal file manager
-OPTIONS
-    -h
-    --help
-        Print this help page.
-"#; /* @MANEND */
 
 pub fn setup() -> crossterm::Result<io::Stdout> {
     let mut stdout = io::stdout();
@@ -106,25 +101,21 @@ async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-#[tokio::main] // TODO: replace with structopt
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    match args.len() {
-        2 => {
-            let mut stdout = setup()?;
-            match args[1].as_str() {
-                "-h" | "--help" => {
-                    println!("{}", HELP);
-                }
-                path => {
-                    if let Err(e) = try_run(&mut stdout, Path::new(path)).await {
-                        eprintln!("{}", e)
-                    }
-                }
-            };
-            cleanup(&mut stdout)?;
-        }
-        _ => eprintln!("please provide a valid file path"),
+    // generate `bash` completions in "target" directory
+    Opt::clap().gen_completions(env!("CARGO_PKG_NAME"), Shell::Bash, "target");
+
+    let opts = Opt::from_args();
+    match opts.file {
+        Some(path) => {
+        let mut stdout = setup()?;
+            if let Err(e) = try_run(&mut stdout, path.as_path()).await {
+                eprintln!("{}", e)
+            }
+            cleanup(&mut stdout)?;        
+        },
+        None => eprintln!("\nplease provide a valid file path"),
     }
 
     Ok(())
