@@ -5,6 +5,8 @@ mod fs;
 mod option;
 // mod ui;
 
+use event::handle_event;
+
 use std::io::{self, Stdout};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -13,11 +15,10 @@ use std::{env, thread};
 
 use crossterm::cursor;
 use crossterm::{execute, terminal};
-use event::handle_event;
+use structopt::{clap::Shell, StructOpt};
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
-use structopt::{StructOpt, clap::Shell};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "suha")]
@@ -109,12 +110,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = Opt::from_args();
     match opts.file {
         Some(path) => {
-        let mut stdout = setup()?;
+            let mut stdout = setup()?;
             if let Err(e) = try_run(&mut stdout, path.as_path()).await {
                 eprintln!("{}", e)
-            }
-            cleanup(&mut stdout)?;        
-        },
+            };
+            cleanup(&mut stdout)?;
+        }
         None => eprintln!("\nplease provide a valid file path"),
     }
 
