@@ -64,24 +64,49 @@ impl Worker {
         Self { sender, receiver }
     }
 
-    pub async fn handle(self) -> Option<Command> {
-        if let Ok(event) = self.receiver.clone().try_recv() {
-            return match event {
-                Event::Key(key) => match key.code {
-                    KeyCode::Esc => Some(Command::Exit),
-                    KeyCode::Char('c') => {
-                        let body = format!("Cursor position: {:?}\r", position());
-                        Some(Command::Debug(body))
-                    }
-                    _ => {
-                        let body = format!("\rEvent::{:?}", key);
-                        Some(Command::Debug(body))
-                    }
-                },
-                _ => None,
-            };
-        };
-
-        None
+    pub fn clone_receiver(self) -> Receiver<Event> {
+        self.receiver.clone()
     }
+
+    // pub async fn handle(self) -> Option<Command> {
+    //     if let Ok(event) = self.receiver.clone().try_recv() {
+    //         return match event {
+    //             Event::Key(key) => match key.code {
+    //                 KeyCode::Esc => Some(Command::Exit),
+    //                 KeyCode::Char('c') => {
+    //                     let body = format!("Cursor position: {:?}\r", position());
+    //                     Some(Command::Debug(body))
+    //                 }
+    //                 _ => {
+    //                     let body = format!("\rEvent::{:?}", key);
+    //                     Some(Command::Debug(body))
+    //                 }
+    //             },
+    //             _ => None,
+    //         };
+    //     };
+
+    //     None
+    // }
+}
+
+pub async fn handle_event(receiver: Receiver<Event>) -> Option<Command> {
+    if let Ok(event) = receiver.try_recv() {
+        return match event {
+            Event::Key(key) => match key.code {
+                KeyCode::Esc => Some(Command::Exit),
+                KeyCode::Char('c') => {
+                    let body = format!("Cursor position: {:?}\r", position());
+                    Some(Command::Debug(body))
+                }
+                _ => {
+                    let body = format!("\rEvent::{:?}", key);
+                    Some(Command::Debug(body))
+                }
+            },
+            _ => None,
+        };
+    };
+
+    None
 }

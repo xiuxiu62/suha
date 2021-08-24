@@ -11,8 +11,10 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{env, thread};
 
+use crossbeam_channel::Receiver;
 use crossterm::cursor;
 use crossterm::{execute, terminal};
+use event::handle_event;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
@@ -21,6 +23,7 @@ use crate::event::{Command, Worker};
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
+const FPS: u64 = 20;
 const HELP: &'static str = /* @MANSTART{suha} */
     r#"
 NAME
@@ -66,15 +69,8 @@ async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::er
         .unwrap()
         .populate_to_root(path, &options)?;
 
+    let receiver = event_worker.receiver.clone_receiver();
     loop {
-        if let Some(command) = event_worker.handle().await {
-            match command {
-                Command::Exit => break,
-                Command::Debug(s) => println!("{}", s),
-                _ => {}
-            }
-        };
-
         terminal.draw(|frame| {
             let body = session_cache
                 .lock()
@@ -92,8 +88,18 @@ async fn try_run(stdout: &mut Stdout, path: &Path) -> Result<(), Box<dyn std::er
             frame.render_widget(Paragraph::new(body), chunks[0]);
         })?;
 
-        // draw 50 frames / second
-        thread::sleep(Duration::from_millis(1_000 / 50));
+        if let Some(command) = handle_event(receiver.clone()).await {
+            match command {
+                Command::Exit => break,
+                Command::Debug(s) => println!("{}", s),
+                _ => {}
+            }
+        };
+
+        print!("test ");
+
+        // draw FPS frames / second
+        thread::sleep(Duration::from_millis(1_000 / FPS));
     }
 
     Ok(())
