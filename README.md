@@ -1,10 +1,10 @@
 # SUHA - a cross platform terminal file manager
+
 [![Linux build](https://github.com/justincremer/suha/actions/workflows/linux-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/linux-main.yml)
 
 [![MacOS build](https://github.com/justincremer/suha/actions/workflows/mac-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/mac-main.yml)
 
 [![MacOS build](https://github.com/justincremer/suha/actions/workflows/windows-main.yml/badge.svg)](https://github.com/justincremer/suha/actions/workflows/windows-main.yml)
-
 
 As much as I enjoy lf and as little a need for this project as there is, it seems like fun.
 Much of the core is based on Jeff Zhao's (kamiyaa) project, Joshuto, but I'm using crossterm
@@ -18,23 +18,22 @@ but it still only does that and is very much under development.
 
 ## Todo
 
-- [x] Core filesystem functionality 
+- [x] Core filesystem functionality
 - [x] Implement display methods for directories and files
 - [ ] User interface
   - [ ] Widget hierarchy and standardized design
   - [ ] Abstracted frame buffer and rendering api
   - [ ] Standardize a way to write unit and integration tests for views
-- [ ] Concurrent event handling for key, mouse, and resize events
-- [ ] Ensure smooth error handling and a clean exit (!!! cleanup terminal)
+- [ ] Event handling, including key and mouse events
+  - [x] Create non-blocking workers with tokio
+  - [ ] Navigation + context updating
+  - [ ] Standard commands
+- [x] Ensure smooth error handling and a clean exit (`cleanup` method in run.rs)
 - [ ] Configuration
-  - [ ] External config design and structure 
-  - [ ] Deserialization into option structs, for use in relevant sub modules
-- [ ] Build out auxilary functionallity
-  - [ ] Directory sorting
-  - [ ] Move, Copy, Delete
-  - [ ] ? Multi-select similar to how dired works 
-  - [ ] Searching
-  - [ ] Tab completion
+  - [ ] External config structure
+  - [ ] Deserialize into context with serde
+- [x] Strutopt for arg parsing
+- [ ] Logging
 
 ## Contributions
 
