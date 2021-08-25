@@ -4,7 +4,7 @@ use std::slice::{Iter, IterMut};
 use std::{fs, io, path};
 
 use super::{Entry, Metadata};
-use crate::option::DisplayOptions;
+use crate::context::Flags;
 
 #[derive(Debug, Clone)]
 pub struct Directory {
@@ -15,8 +15,8 @@ pub struct Directory {
 }
 
 impl Directory {
-    pub fn new(path: path::PathBuf, options: &DisplayOptions) -> io::Result<Self> {
-        let inner = read_dir_list(path.as_path(), options)?;
+    pub fn new(path: path::PathBuf, flags: &Flags) -> io::Result<Self> {
+        let inner = read_dir_list(path.as_path(), flags)?;
         let index = if inner.is_empty() { None } else { Some(0) };
         let metadata = Metadata::from(&path)?;
 
@@ -28,8 +28,8 @@ impl Directory {
         })
     }
 
-    pub fn reload(&mut self, options: &DisplayOptions) -> io::Result<()> {
-        let inner = read_dir_list(&self.path, options)?;
+    pub fn reload(&mut self, flags: &Flags) -> io::Result<()> {
+        let inner = read_dir_list(&self.path, flags)?;
         let inner_len = inner.len();
         let index: Option<usize> = if inner_len == 0 {
             None
@@ -85,10 +85,10 @@ impl Directory {
     }
 }
 
-fn read_dir_list(path: &path::Path, options: &DisplayOptions) -> io::Result<Vec<Entry>> {
+fn read_dir_list(path: &path::Path, flags: &Flags) -> io::Result<Vec<Entry>> {
     let results = fs::read_dir(path)?
         .filter(|res| {
-            if options.show_hidden {
+            if flags.show_hidden {
                 true
             } else {
                 match res {
@@ -101,7 +101,7 @@ fn read_dir_list(path: &path::Path, options: &DisplayOptions) -> io::Result<Vec<
                 }
             }
         })
-        .filter_map(|res| Entry::from(&res.ok()?, options.show_icons).ok())
+        .filter_map(|res| Entry::from(&res.ok()?, flags.show_icons).ok())
         .collect();
     Ok(results)
 }

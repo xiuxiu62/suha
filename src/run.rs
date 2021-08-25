@@ -10,10 +10,9 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
 
-use crate::context::Context;
+use crate::context::{Context, Flags};
 use crate::event::handle_event;
 use crate::fs::Cache;
-use crate::option::DisplayOptions;
 
 pub fn setup() -> crossterm::Result<io::Stdout> {
     let mut stdout = io::stdout();
@@ -54,12 +53,12 @@ fn draw(
 }
 
 pub async fn run(
-    options: DisplayOptions,
     stdout: &mut Stdout,
     path: &Path,
     fps: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let context = Arc::new(Context::new(options));
+    let flags = Flags::new(true, true);
+    let context = Arc::new(Context::new(flags));
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -71,7 +70,7 @@ pub async fn run(
         .session_cache
         .lock()
         .unwrap()
-        .populate_to_root(path, &context.options)?;
+        .populate_to_root(path, &context.flags)?;
 
     loop {
         draw(&mut terminal, context.session_cache.clone(), path)?;
