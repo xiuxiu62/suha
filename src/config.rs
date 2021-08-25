@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::path::PathBuf;
 
 use serde::Deserialize;
 use toml;
@@ -13,14 +13,18 @@ pub struct Config {
 #[derive(Debug)]
 pub enum ConfigError {
     Io(std::io::Error),
+    Utf8(std::string::FromUtf8Error),
     Parse(toml::de::Error),
 }
 
 impl Config {
-    pub fn load(filename: &str) -> Self {
-        match read_config(filename) {
+    pub fn load(path: PathBuf) -> Self {
+        match read_config(path) {
             Ok(config) => config,
-            Err(_) => Config::default(),
+            Err(e) => {
+                eprintln!("{:?}", e);
+                Config::default()
+            }
         }
     }
 }
@@ -34,11 +38,9 @@ impl Default for Config {
     }
 }
 
-fn read_config(filename: &str) -> Result<Config, ConfigError> {
-    let mut file = std::fs::File::open(filename)?;
-    let mut buf = String::new();
-    file.read_to_string(&mut buf)?;
-
+fn read_config(path: PathBuf) -> Result<Config, ConfigError> {
+    let raw = std::fs::read(path)?;
+    let buf = String::from_utf8(raw)?;
     let config = toml::from_str(&buf)?;
     Ok(config)
 }
@@ -46,6 +48,12 @@ fn read_config(filename: &str) -> Result<Config, ConfigError> {
 impl From<std::io::Error> for ConfigError {
     fn from(err: std::io::Error) -> Self {
         ConfigError::Io(err)
+    }
+}
+
+impl From<std::string::FromUtf8Error> for ConfigError {
+    fn from(err: std::string::FromUtf8Error) -> Self {
+        ConfigError::Utf8(err)
     }
 }
 

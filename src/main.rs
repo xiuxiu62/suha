@@ -7,7 +7,10 @@ mod fs;
 mod run;
 // mod ui;
 
-use std::path::PathBuf;
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 use structopt::StructOpt;
 
@@ -20,20 +23,20 @@ pub struct Opt {
     file: Option<PathBuf>,
 }
 
-const FPS: u64 = 120;
-const DEFAULT_PATH: &'static str = "/home/xiuxiu";
-const DEFAULT_CONF: &'static str = "../config.toml";
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let fps: u64 = 120;
+    let default_file: PathBuf = env::current_dir().unwrap().canonicalize().unwrap();
+    let default_conf: PathBuf = default_file.clone().join(Path::new("../config.toml"));
+
     let opts = Opt::from_args();
-    let path: PathBuf = match opts.file {
+    let file_path: PathBuf = match opts.file {
         Some(path) => path,
-        None => PathBuf::from(DEFAULT_PATH),
+        None => PathBuf::from(default_file),
     };
 
     let mut stdout = setup()?;
-    match run(&mut stdout, path.as_path(), DEFAULT_CONF, FPS).await {
+    match run(&mut stdout, file_path, default_conf, fps).await {
         Ok(()) => cleanup(&mut stdout)?,
         Err(e) => {
             cleanup(&mut stdout)?;

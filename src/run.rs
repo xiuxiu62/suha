@@ -1,5 +1,5 @@
 use std::io::{self, Stdout};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -54,12 +54,12 @@ fn draw(
 
 pub async fn run(
     stdout: &mut Stdout,
-    path: &Path,
-    config_file: &str,
+    file_path: PathBuf,
+    config_path: PathBuf,
     fps: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Create context
-    let context = Arc::new(Context::new(config_file));
+    let context = Arc::new(Context::new(config_path));
 
     // Initialize crossterm terminal
     let backend = CrosstermBackend::new(stdout);
@@ -73,10 +73,10 @@ pub async fn run(
         .session_cache
         .lock()
         .unwrap()
-        .populate_to_root(path, &context.config)?;
+        .populate_to_root(&file_path, &context.config)?;
 
     loop {
-        draw(&mut terminal, context.session_cache.clone(), path)?;
+        draw(&mut terminal, context.session_cache.clone(), &file_path)?;
 
         if handle_event(&receiver) {
             break;

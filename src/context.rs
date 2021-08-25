@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use crate::config::Config;
@@ -12,7 +13,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(config_file: &str) -> Self {
+    pub fn new(config_file: PathBuf) -> Self {
         let config = Config::load(config_file);
         let session_cache = Arc::from(Mutex::from(Cache::new()));
         let event_worker = Worker::new();
