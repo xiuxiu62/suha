@@ -10,9 +10,9 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
 
-use crate::event::{handle_event, Command, Worker};
+use crate::context::Context;
+use crate::event::{parse_event, Command};
 use crate::fs::Cache;
-use crate::option::DisplayOptions;
 
 pub fn setup() -> crossterm::Result<io::Stdout> {
     let mut stdout = io::stdout();
@@ -57,25 +57,25 @@ pub async fn run(
     path: &Path,
     fps: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let session_cache = Arc::from(Mutex::from(Cache::new()));
-    let options = DisplayOptions::new(false, true);
+    let context = Arc::new(Context::new());
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    let event_worker = Worker::new();
-
-    // Fill cache to from provided path to the root directory
-    session_cache
-        .lock()
-        .unwrap()
-        .populate_to_root(path, &options)?;
 
     // Clone worker receiver for async sending
-    let receiver = event_worker.clone_receiver();
+    let receiver = context.event_worker.clone().clone_receiver();
+
+    // Initialize cache from path
+    context
+        .session_cache
+        .lock()
+        .unwrap()
+        .populate_to_root(path, &context.options)?;
+
     loop {
-        draw(&mut terminal, session_cache.clone(), path)?;
+        draw(&mut terminal, context.session_cache.clone(), path)?;
 
         // Handle events
-        if let Some(command) = handle_event(receiver.clone()).await {
+        if let Some(command) = parse_event(receiver.clone()).await {
             match command {
                 Command::Exit => break,
                 Command::Debug(s) => println!("{}", s),

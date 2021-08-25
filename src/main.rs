@@ -1,15 +1,15 @@
 #![allow(dead_code)]
 
+mod context;
 mod event;
 mod fs;
 mod option;
 mod run;
 // mod ui;
 
-use std::env;
 use std::path::PathBuf;
 
-use structopt::{clap::Shell, StructOpt};
+use structopt::StructOpt;
 
 use run::*;
 
@@ -25,9 +25,6 @@ const DEFAULT_PATH: &'static str = "/home/xiuxiu";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // generate `bash` completions in "target" directory
-    Opt::clap().gen_completions(env!("CARGO_PKG_NAME"), Shell::Bash, "target");
-
     let opts = Opt::from_args();
     let path: PathBuf = match opts.file {
         Some(path) => path,
