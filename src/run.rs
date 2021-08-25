@@ -58,7 +58,10 @@ pub async fn run(
     config_file: &str,
     fps: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // Create context
     let context = Arc::new(Context::new(config_file));
+
+    // Initialize crossterm terminal
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
