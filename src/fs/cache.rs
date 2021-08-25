@@ -3,8 +3,9 @@ use std::fmt::Display;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use crate::config::Config;
+
 use super::{Directory, Entry};
-use crate::context::Flags;
 
 // Note: we could consider a priority queue for dropping unused directories.
 // Depth could be checked, where the root and any directories up to a depth
@@ -21,13 +22,13 @@ impl Cache {
         Self { inner }
     }
 
-    pub fn populate_to_root(&mut self, path: &Path, flags: &Flags) -> io::Result<()> {
+    pub fn populate_to_root(&mut self, path: &Path, config: &Config) -> io::Result<()> {
         let mut prev: Option<&Path> = None;
         for curr in path.ancestors() {
             match self.inner.entry(curr.to_path_buf()) {
                 hash_map::Entry::Occupied(mut entry) => {
                     let dir = entry.get_mut();
-                    dir.reload(flags)?;
+                    dir.reload(config)?;
                     if let Some(ancestor) = prev.as_ref() {
                         if let Some(i) = find_index_in(&dir.inner, ancestor) {
                             dir.index = Some(i);
@@ -36,7 +37,7 @@ impl Cache {
                     prev = Some(curr);
                 }
                 hash_map::Entry::Vacant(entry) => {
-                    let mut dir = Directory::new(curr.to_path_buf().clone(), flags)?;
+                    let mut dir = Directory::new(curr.to_path_buf().clone(), config)?;
                     if let Some(ancestor) = prev.as_ref() {
                         if let Some(i) = find_index_in(&dir.inner, ancestor) {
                             dir.index = Some(i);

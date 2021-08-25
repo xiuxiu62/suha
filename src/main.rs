@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod config;
 mod context;
 mod event;
 mod fs;
@@ -21,6 +22,7 @@ pub struct Opt {
 
 const FPS: u64 = 120;
 const DEFAULT_PATH: &'static str = "/home/xiuxiu";
+const DEFAULT_CONF: &'static str = "../config.toml";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -31,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut stdout = setup()?;
-    match run(&mut stdout, path.as_path(), FPS).await {
+    match run(&mut stdout, path.as_path(), DEFAULT_CONF, FPS).await {
         Ok(()) => cleanup(&mut stdout)?,
         Err(e) => {
             cleanup(&mut stdout)?;
