@@ -10,8 +10,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new() -> Self {
-        let options = DisplayOptions::new(false, true);
+    pub fn new(options: DisplayOptions) -> Self {
         let session_cache = Arc::from(Mutex::from(Cache::new()));
         let event_worker = Worker::new();
 

@@ -9,6 +9,7 @@ mod run;
 
 use std::path::PathBuf;
 
+use option::DisplayOptions;
 use structopt::StructOpt;
 
 use run::*;
@@ -25,6 +26,7 @@ const DEFAULT_PATH: &'static str = "/home/xiuxiu";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let options = DisplayOptions::new(true, true);
     let opts = Opt::from_args();
     let path: PathBuf = match opts.file {
         Some(path) => path,
@@ -32,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut stdout = setup()?;
-    match run(&mut stdout, path.as_path(), FPS).await {
+    match run(options, &mut stdout, path.as_path(), FPS).await {
         Ok(()) => cleanup(&mut stdout)?,
         Err(e) => {
             cleanup(&mut stdout)?;
