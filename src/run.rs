@@ -11,7 +11,7 @@ use tui::Terminal;
 use tui::{backend::CrosstermBackend, widgets::Paragraph};
 
 use crate::context::Context;
-use crate::event::{parse_event, Command};
+use crate::event::handle_event;
 use crate::fs::Cache;
 use crate::option::DisplayOptions;
 
@@ -76,13 +76,8 @@ pub async fn run(
     loop {
         draw(&mut terminal, context.session_cache.clone(), path)?;
 
-        // Handle events
-        if let Some(command) = parse_event(receiver.clone()).await {
-            match command {
-                Command::Exit => break,
-                Command::Debug(s) => println!("{}", s),
-                _ => {}
-            }
+        if handle_event(&receiver) {
+            break;
         };
 
         // draw FPS frames / second

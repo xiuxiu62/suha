@@ -10,8 +10,8 @@ pub use command::Command;
 pub use context::Context;
 pub use worker::Worker;
 
-// Parse key events sent from worker listener
-pub async fn parse_event(receiver: Receiver<Event>) -> Option<Command> {
+// Parse events sent from worker listener
+pub fn parse_event(receiver: &Receiver<Event>) -> Option<Command> {
     // try to recieve an event, returning nothing on error
     match receiver.try_recv() {
         Ok(event) => match event {
@@ -31,4 +31,17 @@ pub async fn parse_event(receiver: Receiver<Event>) -> Option<Command> {
         },
         Err(_) => None,
     }
+}
+
+// Handles an event, returing true if the program should exit
+pub fn handle_event(receiver: &Receiver<Event>) -> bool {
+    if let Some(command) = parse_event(receiver) {
+        match command {
+            Command::Exit => return true,
+            Command::Debug(s) => println!("{}", s),
+            _ => {}
+        }
+    }
+
+    false
 }
