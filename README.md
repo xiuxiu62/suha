@@ -29,9 +29,9 @@ but it still only does that and is very much under development.
   - [ ] Navigation + context updating
   - [ ] Standard commands
 - [x] Ensure smooth error handling and a clean exit (`cleanup` method in run.rs)
-- [ ] Configuration
-  - [ ] External config structure
-  - [ ] Deserialize into context with serde
+- [x] Configuration
+  - [x] External config structure
+  - [x] Deserialize into context with serde
 - [x] Strutopt for arg parsing
 - [ ] Logging
 
