@@ -2,12 +2,10 @@ use crossbeam_channel::Receiver;
 use crossterm::cursor::position;
 use crossterm::event::{Event, KeyCode};
 
-mod command;
-mod context;
+mod action;
 mod worker;
 
-pub use command::Command;
-pub use context::Context;
+pub use action::Command;
 pub use worker::Worker;
 
 // Parse events sent from worker listener

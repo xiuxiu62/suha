@@ -80,7 +80,7 @@ pub async fn run(
 
         if handle_event(&receiver) {
             break;
-        };
+        }
 
         // draw FPS frames / second
         sleep(Duration::from_millis(1_000 / fps)).await;
@@ -89,6 +89,7 @@ pub async fn run(
     Ok(())
 }
 
+// clean up stdout, disabling raw mode
 pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
     execute!(stdout, terminal::LeaveAlternateScreen)?;
     terminal::disable_raw_mode()?;
