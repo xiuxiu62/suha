@@ -1,11 +1,11 @@
-use std::collections::{hash_map, HashMap};
-use std::fmt::Display;
-use std::io;
-use std::path::{Path, PathBuf};
-
-use crate::config::Config;
-
 use super::{Directory, Entry};
+use crate::config::Config;
+use std::{
+    collections::{hash_map, HashMap},
+    fmt::Display,
+    io,
+    path::{Path, PathBuf},
+};
 
 // Note: we could consider a priority queue for dropping unused directories.
 // Depth could be checked, where the root and any directories up to a depth

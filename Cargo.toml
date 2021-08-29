@@ -16,6 +16,7 @@ crossterm = { version = "0.20.0", features = ["event-stream"] }
 futures = "0.3.16"
 futures-core = { version = "0.3.16", optional = true, default-features = false }
 futures-timer = "3.0.2"
+home = "0.5.3"
 serde = { version = "1.0.129", features = ["derive"] }
 structopt = "0.3.22"
 tokio = { version = "1.10.0", features = ["full"] }

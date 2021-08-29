@@ -1,19 +1,20 @@
-use std::io::{self, Stdout};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-
-use crossterm::cursor;
-use crossterm::{execute, terminal};
+use crate::{context::Context, event::handle_event, fs::Cache};
+use crossterm::{cursor, execute, terminal};
+use std::{
+    io::{self, Stdout},
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use tokio::time::sleep;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::Terminal;
-use tui::{backend::CrosstermBackend, widgets::Paragraph};
+use tui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout},
+    widgets::Paragraph,
+    Terminal,
+};
 
-use crate::context::Context;
-use crate::event::handle_event;
-use crate::fs::Cache;
-
+// initializes the terminal
 pub fn setup() -> crossterm::Result<io::Stdout> {
     let mut stdout = io::stdout();
     execute!(
@@ -27,6 +28,14 @@ pub fn setup() -> crossterm::Result<io::Stdout> {
     Ok(stdout)
 }
 
+// cleans up the terminal
+pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
+    execute!(stdout, terminal::LeaveAlternateScreen)?;
+    terminal::disable_raw_mode()?;
+    Ok(())
+}
+
+// TODO: push into ui module
 fn draw(
     terminal: &mut Terminal<CrosstermBackend<&mut Stdout>>,
     session_cache: Arc<Mutex<Cache>>,
@@ -52,20 +61,18 @@ fn draw(
     Ok(())
 }
 
+// executes the event loop
 pub async fn run(
     stdout: &mut Stdout,
     file_path: PathBuf,
-    config_path: PathBuf,
     fps: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // Create context
-    let context = Arc::new(Context::new(config_path));
-
     // Initialize crossterm terminal
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Clone worker receiver for async sending
+    // Create context and clone a worker receiver
+    let context = Arc::new(Context::new());
     let receiver = context.event_worker.clone().clone_receiver();
 
     // Initialize cache from path
@@ -82,16 +89,9 @@ pub async fn run(
             break;
         }
 
-        // draw FPS frames / second
+        // Draw `fps` frames / second
         sleep(Duration::from_millis(1_000 / fps)).await;
     }
 
-    Ok(())
-}
-
-// clean up stdout, disabling raw mode
-pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
-    execute!(stdout, terminal::LeaveAlternateScreen)?;
-    terminal::disable_raw_mode()?;
     Ok(())
 }

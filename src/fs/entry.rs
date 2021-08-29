@@ -1,12 +1,8 @@
+use super::metadata::{self, FileType, Metadata};
 use std::{
     fmt, fs,
     io::{self, BufRead, BufReader},
     path::{self, PathBuf},
-};
-
-use super::{
-    metadata::{self, FileType},
-    Metadata,
 };
 
 #[derive(Debug, Clone)]
