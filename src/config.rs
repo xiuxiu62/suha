@@ -1,31 +1,39 @@
-use std::path::PathBuf;
-
 use serde::Deserialize;
+use std::{fs, path::PathBuf};
 use toml;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub show_hidden: bool,
     pub show_icons: bool,
 }
 
-#[derive(Debug)]
-pub enum ConfigError {
-    Io(std::io::Error),
-    Utf8(std::string::FromUtf8Error),
-    Parse(toml::de::Error),
-}
-
 impl Config {
-    pub fn load(path: PathBuf) -> Self {
-        match read_config(path) {
-            Ok(config) => config,
-            Err(e) => {
-                eprintln!("{:?}", e);
-                Config::default()
+    // Trys to load a config, returning default if none are found
+    pub fn try_load() -> Self {
+        if let Some(home_dir) = home::home_dir() {
+            let canonicalize = |partial| home_dir.clone().join(partial);
+            let possible_partials = [
+                ".config/suha.toml",
+                ".config/suha/config.toml",
+                ".config/suha.d/config.toml",
+            ];
+
+            for partial in possible_partials {
+                match Config::read(canonicalize(partial)) {
+                    Ok(v) => return v,
+                    Err(_) => continue,
+                }
             }
-        }
+        };
+
+        Config::default()
+    }
+
+    fn read(path: PathBuf) -> Result<Config, ConfigError> {
+        let buf = fs::read_to_string(path)?;
+        Ok(toml::from_str(&buf)?)
     }
 }
 
@@ -38,22 +46,15 @@ impl Default for Config {
     }
 }
 
-fn read_config(path: PathBuf) -> Result<Config, ConfigError> {
-    let raw = std::fs::read(path)?;
-    let buf = String::from_utf8(raw)?;
-    let config = toml::from_str(&buf)?;
-    Ok(config)
+#[derive(Debug)]
+pub enum ConfigError {
+    Io(std::io::Error),
+    Parse(toml::de::Error),
 }
 
 impl From<std::io::Error> for ConfigError {
     fn from(err: std::io::Error) -> Self {
         ConfigError::Io(err)
-    }
-}
-
-impl From<std::string::FromUtf8Error> for ConfigError {
-    fn from(err: std::string::FromUtf8Error) -> Self {
-        ConfigError::Utf8(err)
     }
 }
 

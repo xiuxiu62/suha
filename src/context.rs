@@ -1,9 +1,5 @@
-use std::path::PathBuf;
+use crate::{config::Config, event::Worker, fs::Cache};
 use std::sync::{Arc, Mutex};
-
-use crate::config::Config;
-use crate::event::Worker;
-use crate::fs::Cache;
 
 #[derive(Debug)]
 pub struct Context {
@@ -13,8 +9,8 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(config_file: PathBuf) -> Self {
-        let config = Config::load(config_file);
+    pub fn new() -> Self {
+        let config = Config::try_load();
         let session_cache = Arc::from(Mutex::from(Cache::new()));
         let event_worker = Worker::new();
 

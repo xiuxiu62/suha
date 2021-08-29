@@ -1,11 +1,10 @@
-use std::fmt::Display;
-
-use std::slice::{Iter, IterMut};
-use std::{fs, io, path};
-
-use crate::config::Config;
-
 use super::{Entry, Metadata};
+use crate::config::Config;
+use std::{
+    fmt::Display,
+    fs, io, path,
+    slice::{Iter, IterMut},
+};
 
 #[derive(Debug, Clone)]
 pub struct Directory {
