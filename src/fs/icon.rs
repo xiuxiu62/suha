@@ -1,7 +1,7 @@
-use std::path::PathBuf;
+use std::path::Path;
 
-pub const DEFAULT_DIR: &'static str = "";
-pub const DEFAULT_FILE: &'static str = "";
+pub const DEFAULT_DIR: &str = "";
+pub const DEFAULT_FILE: &str = "";
 
 // For full font set, consider installing a third party font.
 // Recommended: https://github.com/ryanoasis/nerd-fonts
@@ -27,7 +27,7 @@ pub fn dir_node_exact_matches(name: &str) -> &str {
         "Imágenes" => "",
         "Público" => "",
         "Plantillas" => "",
-        // "Vídeos"                           => "",
+        // "Vídeos" => "",
         // French
         "Bureau" => "",
         "Images" => "",
@@ -67,7 +67,7 @@ pub fn dir_node_exact_matches(name: &str) -> &str {
     }
 }
 
-pub fn file_node_exact_matches<'s>(name: &str, path: &'s PathBuf) -> &'s str {
+pub fn file_node_exact_matches<'s>(name: &str, path: &'s Path) -> &'s str {
     match name {
         ".bash_aliases" => "",
         ".bash_history" => "",

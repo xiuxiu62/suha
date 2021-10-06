@@ -49,6 +49,6 @@ impl Worker {
     }
 
     pub fn clone_receiver(self) -> Receiver<Event> {
-        self.receiver.clone()
+        self.receiver
     }
 }

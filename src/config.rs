@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use std::{fs, path::PathBuf};
-use toml;
 
 #[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
