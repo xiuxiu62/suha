@@ -1,9 +1,8 @@
 use super::metadata::{self, FileType, Metadata};
-use std::{
-    fmt, fs,
-    io::{self, BufRead, BufReader},
-    path::{self, PathBuf},
-};
+use std::fmt;
+use std::fs;
+use std::io::{self, BufRead, BufReader};
+use std::path::{self, Path};
 
 #[derive(Debug, Clone)]
 pub struct Entry {
@@ -80,12 +79,12 @@ impl fmt::Display for Entry {
     }
 }
 
-fn icon_label(name: &String, path: &PathBuf, md: &Metadata) -> io::Result<String> {
+fn icon_label(name: &str, path: &Path, md: &Metadata) -> io::Result<String> {
     use super::icon::*;
 
     let icon = match md.file_type {
-        FileType::Directory(_) => dir_node_exact_matches(name.as_str()),
-        FileType::File => file_node_exact_matches(name.as_str(), path),
+        FileType::Directory(_) => dir_node_exact_matches(name),
+        FileType::File => file_node_exact_matches(name, path),
     };
     Ok(format!("{} {}", icon, name))
 }
