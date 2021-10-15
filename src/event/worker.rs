@@ -7,6 +7,7 @@ use crossterm::event::{Event, EventStream, KeyCode};
 use futures::{select, FutureExt, StreamExt};
 use futures_timer::Delay;
 
+use super::command::Movement;
 use super::Command;
 
 #[derive(Debug, Clone)]
@@ -59,10 +60,28 @@ impl Worker {
                 Event::Key(key) => match key.code {
                     //
                     KeyCode::Esc => Some(Command::Exit),
-                    KeyCode::Char('c') => {
-                        let body = format!("Cursor position: {:?}\r", cursor::position());
-                        Some(Command::Debug(body))
-                    }
+                    KeyCode::Char(char) => match char {
+                        'm' => Some(Command::Mark),
+                        'y' => Some(Command::Copy),
+                        'd' => Some(Command::Cut),
+                        'p' => Some(Command::Paste),
+                        'u' => Some(Command::Undo),
+
+                        'h' => Some(Command::Move(Movement::Left)),
+                        'j' => Some(Command::Move(Movement::Down)),
+                        'k' => Some(Command::Move(Movement::Up)),
+                        'l' => Some(Command::Move(Movement::Right)),
+
+                        'c' => {
+                            let body = format!("Cursor position: {:?}\r", cursor::position());
+                            Some(Command::Debug(body))
+                        }
+
+                        _ => {
+                            let body = format!("\rChar({})\r", char);
+                            Some(Command::Debug(body))
+                        }
+                    },
                     _ => {
                         let body = format!("\rEvent::{:?}\r", key);
                         Some(Command::Debug(body))
@@ -79,15 +98,10 @@ impl Worker {
         if let Some(command) = self.parse_event() {
             match command {
                 Command::Exit => return true,
-                Command::Debug(s) => println!("{}", s),
-                _ => {}
+                command => println!("{}", command),
             }
         }
 
         false
-    }
-
-    pub fn clone_receiver(self) -> Receiver<Event> {
-        self.receiver
     }
 }
