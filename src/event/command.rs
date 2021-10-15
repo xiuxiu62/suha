@@ -1,17 +1,17 @@
 #[derive(Debug)]
 pub enum Command {
-    Exit,          // Unimplemented
-    Move,          // Unimplemented
-    Copy,          // Unimplemented
-    Cut,           // Unimplemented
-    Paste,         // Unimplemented
-    Undo,          // Unimplemented
-    Debug(String), // Logs debug info
-    Error(String), // Logs error info
+    Exit,           // Unimplemented
+    Copy,           // Unimplemented
+    Cut,            // Unimplemented
+    Paste,          // Unimplemented
+    Undo,           // Unimplemented
+    Move(Movement), // Unimplemented
+    Debug(String),  // Logs debug info
+    Error(String),  // Logs error info
 }
 
 #[derive(Debug)]
-enum Movement {
+pub enum Movement {
     Up,    // ↑
     Down,  // ↓
     Left,  // ←

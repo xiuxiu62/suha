@@ -1,9 +1,8 @@
-use crate::{context::Context, event::handle_event, fs::Cache};
+use crate::{context::Context, fs::Cache};
 use crossterm::{cursor, execute, terminal};
 use std::{
     io::{self, Stdout},
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
     time::Duration,
 };
 use tokio::time::sleep;
@@ -38,17 +37,11 @@ pub fn cleanup(stdout: &mut Stdout) -> crossterm::Result<()> {
 // TODO: push into ui module
 fn draw(
     terminal: &mut Terminal<CrosstermBackend<&mut Stdout>>,
-    session_cache: Arc<Mutex<Cache>>,
+    cache: &Cache,
     path: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
     terminal.draw(|frame| {
-        let body = session_cache
-            .lock()
-            .unwrap()
-            .inner
-            .get(path)
-            .unwrap()
-            .to_string();
+        let body = cache.inner.get(path).unwrap().to_string();
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -70,24 +63,20 @@ pub async fn run(
     // Initialize crossterm terminal
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
     // Create context and clone a worker receiver
-    let context = Arc::new(Context::new());
-    let receiver = context.event_worker.clone().clone_receiver();
+    let mut context = Context::new();
 
     // Initialize cache from path
     context
-        .session_cache
-        .lock()
-        .unwrap()
+        .cache
         .populate_to_root(&file_path, &context.config)?;
 
     loop {
-        draw(&mut terminal, context.session_cache.clone(), &file_path)?;
+        draw(&mut terminal, &context.cache, &file_path)?;
 
-        if handle_event(&receiver) {
+        if context.worker.handle_event() {
             break;
-        }
+        };
 
         // Draw `fps` frames / second
         sleep(Duration::from_millis(1_000 / fps)).await;

@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::{fs, path::PathBuf};
 
-#[derive(Deserialize, Debug)]
+#[derive(Default, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub show_hidden: bool,
@@ -33,15 +33,6 @@ impl Config {
     fn read(path: PathBuf) -> Result<Config, ConfigError> {
         let buf = fs::read_to_string(path)?;
         Ok(toml::from_str(&buf)?)
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            show_hidden: false,
-            show_icons: false,
-        }
     }
 }
 
