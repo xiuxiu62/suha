@@ -12,20 +12,17 @@ use std::{
 // of 2 won't be dropped, as they will likely be repopulated.
 
 #[derive(Debug, Clone)]
-pub struct Cache {
-    pub inner: HashMap<PathBuf, Directory>,
-}
+pub struct Cache(HashMap<PathBuf, Directory>);
 
 impl Cache {
     pub fn new() -> Self {
-        let inner: HashMap<PathBuf, Directory> = HashMap::new();
-        Self { inner }
+        Self(HashMap::<PathBuf, Directory>::new())
     }
 
     pub fn populate_to_root(&mut self, path: &Path, config: &Config) -> io::Result<()> {
         let mut prev: Option<&Path> = None;
         for curr in path.ancestors() {
-            match self.inner.entry(curr.to_path_buf()) {
+            match self.as_mut().entry(curr.to_path_buf()) {
                 hash_map::Entry::Occupied(mut entry) => {
                     let dir = entry.get_mut();
                     dir.reload(config)?;
@@ -51,15 +48,31 @@ impl Cache {
         Ok(())
     }
 
+    pub fn get(&self, key: &PathBuf) -> Option<&Directory> {
+        self.as_ref().get(key)
+    }
+
+    pub fn set(&mut self, key: PathBuf, value: Directory) -> Option<Directory> {
+        self.as_mut().insert(key, value)
+    }
+
     pub fn clear(&mut self) {
-        self.inner.clear()
+        self.0.clear()
+    }
+
+    pub fn as_ref(&self) -> &HashMap<PathBuf, Directory> {
+        &self.0
+    }
+
+    pub fn as_mut(&mut self) -> &mut HashMap<PathBuf, Directory> {
+        &mut self.0
     }
 }
 
 impl Display for Cache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut buf = String::new();
-        self.inner
+        self.as_ref()
             .iter()
             .for_each(|(_, d)| buf += format!("{}\n", d).as_str());
         write!(f, "{}", buf)

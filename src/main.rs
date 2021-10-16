@@ -4,12 +4,16 @@ mod config;
 mod context;
 mod event;
 mod fs;
-mod run;
-// mod ui;
+mod ui;
 
-use crate::run::*;
-use std::path::PathBuf;
+use context::Context;
+
 use structopt::StructOpt;
+use tokio::time::sleep;
+
+use std::error::Error;
+use std::path::PathBuf;
+use std::time::Duration;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "suha", about = "A cross platform terminal file manager.")]
@@ -19,8 +23,8 @@ pub struct Opt {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let fps: u64 = 120;
+async fn main() -> Result<(), Box<dyn Error>> {
+    let mut app = App::new(120u64).await?;
 
     let opts = Opt::from_args();
     let file_path: PathBuf = match opts.file {
@@ -32,14 +36,61 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
 
-    let mut stdout = setup()?;
-    match run(&mut stdout, file_path, fps).await {
-        Ok(()) => cleanup(&mut stdout)?,
-        Err(e) => {
-            cleanup(&mut stdout)?;
-            eprintln!("{}", e)
-        }
-    };
+    app.run(&file_path).await
+}
 
-    Ok(())
+pub struct App {
+    context: Context,
+    fps: u64,
+}
+
+impl App {
+    pub async fn new(fps: u64) -> crossterm::Result<App> {
+        let context = Context::new()?;
+        Ok(App { context, fps })
+    }
+
+    pub async fn run(&mut self, file_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+        // Initialize cache from path
+        self.context
+            .cache
+            .populate_to_root(&file_path, &self.context.config)?;
+
+        if let Err(e) = self.event_loop(file_path).await {
+            eprintln!("{}", e)
+        };
+
+        self.cleanup().await?;
+        Ok(())
+    }
+
+    async fn event_loop(&mut self, file_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+        loop {
+            self.render(file_path).await?;
+
+            if self.handle_event().await {
+                break;
+            };
+
+            // Draw `fps` frames / second
+            sleep(Duration::from_millis(1_000 / self.fps)).await;
+        }
+
+        Ok(())
+    }
+
+    async fn cleanup(&mut self) -> crossterm::Result<()> {
+        self.context.painter.cleanup().await
+    }
+
+    async fn render(&mut self, file_path: &PathBuf) -> crossterm::Result<()> {
+        self.context
+            .painter
+            .render(&self.context.cache, &file_path)
+            .await
+    }
+
+    async fn handle_event(&mut self) -> bool {
+        self.context.worker.handle_event()
+    }
 }

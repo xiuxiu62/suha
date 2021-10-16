@@ -1,1 +1,3 @@
-pub mod terminal;
+mod painter;
+
+pub use painter::Painter;

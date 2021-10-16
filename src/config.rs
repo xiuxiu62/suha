@@ -13,11 +13,7 @@ impl Config {
     pub fn try_load() -> Self {
         if let Some(home_dir) = home::home_dir() {
             let canonicalize = |partial| home_dir.clone().join(partial);
-            let possible_partials = [
-                ".config/suha.toml",
-                ".config/suha/config.toml",
-                ".config/suha.d/config.toml",
-            ];
+            let possible_partials = [".config/suha.toml", ".config/suha/config.toml"];
 
             for partial in possible_partials {
                 match Config::read(canonicalize(partial)) {
