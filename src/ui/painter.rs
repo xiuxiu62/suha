@@ -12,7 +12,7 @@ use std::{
     path::Path,
 };
 
-type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
+pub type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
 
 pub struct Painter(Terminal);
 
@@ -50,20 +50,20 @@ impl Painter {
     }
 
     pub async fn cleanup(&mut self) -> crossterm::Result<()> {
-        execute!(self.backend_mut(), terminal::LeaveAlternateScreen)?;
+        execute!(self.as_mut().backend_mut(), terminal::LeaveAlternateScreen)?;
         terminal::disable_raw_mode()?;
         Ok(())
     }
+}
 
+impl AsRef<Terminal> for Painter {
     fn as_ref(&self) -> &Terminal {
         &self.0
     }
+}
 
+impl AsMut<Terminal> for Painter {
     fn as_mut(&mut self) -> &mut Terminal {
         &mut self.0
-    }
-
-    fn backend_mut(&mut self) -> &mut CrosstermBackend<Stdout> {
-        self.0.backend_mut()
     }
 }

@@ -59,12 +59,16 @@ impl Cache {
     pub fn clear(&mut self) {
         self.0.clear()
     }
+}
 
-    pub fn as_ref(&self) -> &HashMap<PathBuf, Directory> {
+impl AsRef<HashMap<PathBuf, Directory>> for Cache {
+    fn as_ref(&self) -> &HashMap<PathBuf, Directory> {
         &self.0
     }
+}
 
-    pub fn as_mut(&mut self) -> &mut HashMap<PathBuf, Directory> {
+impl AsMut<HashMap<PathBuf, Directory>> for Cache {
+    fn as_mut(&mut self) -> &mut HashMap<PathBuf, Directory> {
         &mut self.0
     }
 }
