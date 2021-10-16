@@ -48,8 +48,8 @@ impl Cache {
         Ok(())
     }
 
-    pub fn get(&self, key: &PathBuf) -> Option<&Directory> {
-        self.as_ref().get(key)
+    pub fn get(&self, k: &Path) -> Option<&Directory> {
+        self.as_ref().get(k)
     }
 
     pub fn set(&mut self, key: PathBuf, value: Directory) -> Option<Directory> {

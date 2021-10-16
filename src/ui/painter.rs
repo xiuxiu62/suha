@@ -9,7 +9,7 @@ use tui::{
 
 use std::{
     io::{stdout, Stdout},
-    path::PathBuf,
+    path::Path,
 };
 
 type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
@@ -34,7 +34,7 @@ impl Painter {
         Ok(Self(terminal))
     }
 
-    pub async fn render(&mut self, cache: &Cache, path: &PathBuf) -> crossterm::Result<()> {
+    pub async fn render(&mut self, cache: &Cache, path: &Path) -> crossterm::Result<()> {
         self.as_mut().draw(|frame| {
             let body = cache.get(path).unwrap().to_string();
 

@@ -12,7 +12,7 @@ use structopt::StructOpt;
 use tokio::time::sleep;
 
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 #[derive(Debug, StructOpt)]
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    app.run(&file_path).await
+    app.run(file_path).await
 }
 
 pub struct App {
@@ -50,7 +50,7 @@ impl App {
         Ok(App { context, fps })
     }
 
-    pub async fn run(&mut self, file_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&mut self, file_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         // Initialize cache from path
         self.context
             .cache
@@ -64,9 +64,9 @@ impl App {
         Ok(())
     }
 
-    async fn event_loop(&mut self, file_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    async fn event_loop(&mut self, file_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            self.render(file_path).await?;
+            self.render(&file_path).await?;
 
             if self.handle_event().await {
                 break;
@@ -83,10 +83,10 @@ impl App {
         self.context.painter.cleanup().await
     }
 
-    async fn render(&mut self, file_path: &PathBuf) -> crossterm::Result<()> {
+    async fn render(&mut self, file_path: &Path) -> crossterm::Result<()> {
         self.context
             .painter
-            .render(&self.context.cache, &file_path)
+            .render(&self.context.cache, file_path)
             .await
     }
 
