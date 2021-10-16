@@ -1,4 +1,8 @@
-use crate::context::Context;
+use crate::{
+    context::Context,
+    event::{Command, SendResult},
+    ui::Painter,
+};
 
 use tokio::time::{sleep, Duration};
 
@@ -9,20 +13,31 @@ use std::{
 
 pub struct App {
     context: Context,
+    painter: Painter,
+    current_file: PathBuf,
     fps: u64,
 }
 
 impl App {
-    pub async fn new(fps: u64) -> crossterm::Result<App> {
+    pub async fn new(file_path: PathBuf, fps: u64) -> crossterm::Result<App> {
         let context = Context::new()?;
-        Ok(App { context, fps })
+        let painter = Painter::new(context.worker.clone())?;
+
+        Ok(App {
+            context,
+            painter,
+            current_file: file_path,
+            fps,
+        })
     }
 
-    pub async fn run(&mut self, file_path: PathBuf) -> Result<(), Box<dyn Error>> {
+    pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
         let config = &self.context.config;
-        self.context.cache.populate_to_root(&file_path, config)?;
+        self.context
+            .cache
+            .populate_to_root(&self.current_file, config)?;
 
-        if let Err(e) = self.event_loop(file_path).await {
+        if let Err(e) = self.event_loop().await {
             eprintln!("{}", e)
         };
 
@@ -30,11 +45,12 @@ impl App {
         Ok(())
     }
 
-    async fn event_loop(&mut self, file_path: PathBuf) -> crossterm::Result<()> {
+    async fn event_loop(&mut self) -> Result<(), Box<dyn Error>> {
         loop {
-            self.render(&file_path).await?;
+            self.update().await;
+            self.render().await?;
 
-            if self.handle_event().await {
+            if self.handle_event().await? {
                 break;
             };
 
@@ -45,16 +61,20 @@ impl App {
         Ok(())
     }
 
-    async fn cleanup(&mut self) -> crossterm::Result<()> {
-        self.context.painter.cleanup().await
+    async fn update(&mut self) {
+        self.painter.update().await;
     }
 
-    async fn render(&mut self, file_path: &Path) -> crossterm::Result<()> {
+    async fn render(&mut self) -> crossterm::Result<()> {
         let cache = &self.context.cache;
-        self.context.painter.render(cache, file_path).await
+        self.painter.render(cache, &self.current_file).await
     }
 
-    async fn handle_event(&mut self) -> bool {
-        self.context.worker.handle_event()
+    async fn handle_event(&mut self) -> SendResult<bool, Command> {
+        self.context.worker.lock().await.handle_event().await
+    }
+
+    async fn cleanup(&mut self) -> crossterm::Result<()> {
+        self.painter.cleanup().await
     }
 }

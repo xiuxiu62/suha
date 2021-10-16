@@ -1,9 +1,12 @@
-use crate::{config::Config, event::Worker, fs::Cache, ui::Painter};
+use std::sync::Arc;
+
+use tokio::sync::Mutex;
+
+use crate::{config::Config, event::Worker, fs::Cache};
 
 pub struct Context {
     pub config: Config,
-    pub worker: Worker,
-    pub painter: Painter,
+    pub worker: Arc<Mutex<Worker>>,
     pub cache: Cache,
 }
 
@@ -11,8 +14,7 @@ impl Context {
     pub fn new() -> crossterm::Result<Self> {
         Ok(Self {
             config: Config::try_load(),
-            worker: Worker::new(),
-            painter: Painter::new()?,
+            worker: Arc::new(Mutex::new(Worker::new())),
             cache: Cache::new(),
         })
     }

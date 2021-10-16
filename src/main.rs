@@ -32,6 +32,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    let mut app = App::new(120u64).await?;
-    app.run(file_path).await
+    let mut app = App::new(file_path, 60u64).await?;
+    app.run().await
 }

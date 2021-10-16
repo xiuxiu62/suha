@@ -1,5 +1,5 @@
 mod command;
 mod worker;
 
-pub use command::Command;
-pub use worker::Worker;
+pub use command::*;
+pub use worker::*;

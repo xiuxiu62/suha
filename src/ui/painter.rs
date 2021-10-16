@@ -1,6 +1,10 @@
-use crate::fs::Cache;
+use crate::{
+    event::{Command, Worker},
+    fs::Cache,
+};
 
 use crossterm::{cursor, execute, terminal};
+use tokio::sync::Mutex;
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
@@ -10,6 +14,7 @@ use tui::{
 use std::{
     io::{stdout, Stdout},
     path::Path,
+    sync::Arc,
 };
 
 macro_rules! constraints {
@@ -18,10 +23,14 @@ macro_rules! constraints {
 
 pub type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
 
-pub struct Painter(Terminal);
+pub struct Painter {
+    terminal: Terminal,
+    worker: Arc<Mutex<Worker>>,
+    command: Command,
+}
 
 impl Painter {
-    pub fn new() -> crossterm::Result<Self> {
+    pub fn new(worker: Arc<Mutex<Worker>>) -> crossterm::Result<Self> {
         let mut stdout = stdout();
         execute!(
             stdout,
@@ -35,10 +44,21 @@ impl Painter {
 
         terminal::enable_raw_mode()?;
 
-        Ok(Self(terminal))
+        Ok(Self {
+            terminal,
+            worker,
+            command: Command::None,
+        })
+    }
+
+    pub async fn update(&mut self) {
+        if let Ok(command) = self.worker.lock().await.receive_command().await {
+            self.command = command
+        };
     }
 
     pub async fn render(&mut self, cache: &Cache, path: &Path) -> crossterm::Result<()> {
+        let command = self.command.to_string();
         self.as_mut().draw(|frame| {
             let vertical_chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -77,9 +97,9 @@ impl Painter {
                 horizontal_chunks[2],
             );
             frame.render_widget(
-                default_block.clone().title("[ Command ]"),
+                Paragraph::new(command).block(default_block.clone().title("[ Command ]")),
                 vertical_chunks[1],
-            );
+            )
         })?;
         Ok(())
     }
@@ -93,12 +113,12 @@ impl Painter {
 
 impl AsRef<Terminal> for Painter {
     fn as_ref(&self) -> &Terminal {
-        &self.0
+        &self.terminal
     }
 }
 
 impl AsMut<Terminal> for Painter {
     fn as_mut(&mut self) -> &mut Terminal {
-        &mut self.0
+        &mut self.terminal
     }
 }

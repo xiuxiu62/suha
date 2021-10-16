@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Command {
+    None,
     Exit,           // Unimplemented
     Mark,           // Unimplemented
     Copy,           // Unimplemented
@@ -16,6 +17,7 @@ pub enum Command {
 impl Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let message = match self {
+            Command::None => String::new(),
             Command::Exit => "Command(Exit)".to_string(),
             Command::Mark => "Command(Mark)".to_string(),
             Command::Copy => "Command(Copy)".to_string(),
@@ -30,7 +32,7 @@ impl Display for Command {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Movement {
     Up,    // ↑
     Down,  // ↓
