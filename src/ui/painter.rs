@@ -4,13 +4,17 @@ use crossterm::{cursor, execute, terminal};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
-    widgets::Paragraph,
+    widgets::{self, Block, Borders, Paragraph, Widget},
 };
 
 use std::{
     io::{stdout, Stdout},
     path::Path,
 };
+
+macro_rules! constraints {
+	( $( $constraint:expr ),* ) => ([ $( Constraint::Percentage( $constraint ), )* ].as_ref())
+}
 
 pub type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
 
@@ -36,16 +40,38 @@ impl Painter {
 
     pub async fn render(&mut self, cache: &Cache, path: &Path) -> crossterm::Result<()> {
         self.as_mut().draw(|frame| {
-            let body = cache.get(path).unwrap().to_string();
-
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(100)].as_ref())
+            let horizontal_chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .margin(1)
+                .constraints(constraints![30, 40, 30])
                 .split(frame.size());
 
-            frame.render_widget(Paragraph::new(body), chunks[0]);
-        })?;
+            // let vertical_chunks = Layout::default()
+            //     .direction(Direction::Vertical)
+            //     .margin(1)
+            //     .constraints(constraints![5])
+            //     .split(frame.size());
 
+            // 0'th because all vertical chunk heights are the same
+            // let general_chunk_height = vertical_chunks[0].height as usize - 3;
+
+            let default_block = Block::default().borders(Borders::ALL);
+
+            let directory = cache.get(path).unwrap();
+            let title = &directory.path;
+            let body = directory.to_string();
+
+            frame.render_widget(default_block.clone(), horizontal_chunks[0]);
+            frame.render_widget(
+                Paragraph::new(body).block(
+                    default_block
+                        .clone()
+                        .title(format!("[ {} ]", title.to_string_lossy().as_ref())),
+                ),
+                horizontal_chunks[1],
+            );
+            frame.render_widget(default_block.clone(), horizontal_chunks[2]);
+        })?;
         Ok(())
     }
 

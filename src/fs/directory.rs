@@ -8,10 +8,10 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct Directory {
+    pub path: path::PathBuf,
     pub inner: Vec<Entry>,
     pub index: Option<usize>,
     pub metadata: Metadata,
-    path: path::PathBuf,
 }
 
 impl Directory {
@@ -21,10 +21,10 @@ impl Directory {
         let metadata = Metadata::from(&path)?;
 
         Ok(Self {
+            path,
             inner,
             index,
             metadata,
-            path,
         })
     }
 
@@ -108,18 +108,11 @@ fn read_dir_list(path: &path::Path, config: &Config) -> io::Result<Vec<Entry>> {
 
 impl Display for Directory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut buf = String::new();
-        self.inner
+        let body = self
+            .inner
             .iter()
-            .for_each(|e| buf += format!("{}\n", e).as_str());
+            .fold(String::new(), |acc, file| format!("{}\n{}", acc, file));
 
-        let path_str = self.path.to_str().unwrap();
-        write!(
-            f,
-            "{}\n{}\n{}",
-            path_str,
-            str::repeat("-", path_str.len()),
-            buf
-        )
+        write!(f, "{}", body)
     }
 }
