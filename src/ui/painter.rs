@@ -40,17 +40,16 @@ impl Painter {
 
     pub async fn render(&mut self, cache: &Cache, path: &Path) -> crossterm::Result<()> {
         self.as_mut().draw(|frame| {
-            let horizontal_chunks = Layout::default()
-                .direction(Direction::Horizontal)
+            let vertical_chunks = Layout::default()
+                .direction(Direction::Vertical)
                 .margin(1)
-                .constraints(constraints![30, 40, 30])
+                .constraints(constraints![95, 5])
                 .split(frame.size());
 
-            // let vertical_chunks = Layout::default()
-            //     .direction(Direction::Vertical)
-            //     .margin(1)
-            //     .constraints(constraints![5])
-            //     .split(frame.size());
+            let horizontal_chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(constraints![30, 40, 30])
+                .split(vertical_chunks[0]);
 
             // 0'th because all vertical chunk heights are the same
             // let general_chunk_height = vertical_chunks[0].height as usize - 3;
@@ -61,7 +60,10 @@ impl Painter {
             let title = &directory.path;
             let body = directory.to_string();
 
-            frame.render_widget(default_block.clone(), horizontal_chunks[0]);
+            frame.render_widget(
+                default_block.clone().title("[ Parent ]"),
+                horizontal_chunks[0],
+            );
             frame.render_widget(
                 Paragraph::new(body).block(
                     default_block
@@ -70,7 +72,14 @@ impl Painter {
                 ),
                 horizontal_chunks[1],
             );
-            frame.render_widget(default_block.clone(), horizontal_chunks[2]);
+            frame.render_widget(
+                default_block.clone().title("[ Preview ]"),
+                horizontal_chunks[2],
+            );
+            frame.render_widget(
+                default_block.clone().title("[ Command ]"),
+                vertical_chunks[1],
+            );
         })?;
         Ok(())
     }
