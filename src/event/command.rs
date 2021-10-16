@@ -16,12 +16,12 @@ pub enum Command {
 impl Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let message = match self {
-            Command::Exit => format!("Command(Exit)"),
-            Command::Mark => format!("Command(Mark)"),
-            Command::Copy => format!("Command(Copy)"),
-            Command::Cut => format!("Command(Cut)"),
-            Command::Paste => format!("Command(Paste)"),
-            Command::Undo => format!("Command(Undo)"),
+            Command::Exit => "Command(Exit)".to_string(),
+            Command::Mark => "Command(Mark)".to_string(),
+            Command::Copy => "Command(Copy)".to_string(),
+            Command::Cut => "Command(Cut)".to_string(),
+            Command::Paste => "Command(Paste)".to_string(),
+            Command::Undo => "Command(Undo)".to_string(),
             Command::Move(direction) => format!("Command(Move({}))", direction),
             Command::Debug(message) => format!("Debug: {}", message),
             Command::Error(message) => format!("Error: {}", message),
