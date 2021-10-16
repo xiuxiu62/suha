@@ -6,10 +6,7 @@ use crate::{
 
 use tokio::time::{sleep, Duration};
 
-use std::{
-    error::Error,
-    path::{Path, PathBuf},
-};
+use std::{error::Error, path::PathBuf};
 
 pub struct App {
     context: Context,
