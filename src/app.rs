@@ -26,7 +26,8 @@ impl App {
             eprintln!("{}", e)
         };
 
-        self.cleanup().await
+        self.cleanup().await?;
+        Ok(())
     }
 
     async fn event_loop(&mut self, file_path: PathBuf) -> crossterm::Result<()> {
