@@ -4,7 +4,7 @@ use crossterm::{cursor, execute, terminal};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
-    widgets::{self, Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph},
 };
 
 use std::{
