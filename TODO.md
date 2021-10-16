@@ -2,12 +2,12 @@
 - [x] Implement display methods for directories and files
 - [ ] User interface
   - [ ] Widget hierarchy and standardized design
-  - [ ] Abstracted frame buffer and rendering api
-  - [ ] Standardize a way to write unit and integration tests for views
+  - [x] Abstracted frame buffer and rendering api
+  - [ ] Integrate event handlers
 - [ ] Event handling, including key and mouse events
   - [x] Create non-blocking workers with tokio
   - [ ] Navigation + context updating
-  - [ ] Standard commands
+  - [x] Standard commands
 - [x] Ensure smooth error handling and a clean exit (`cleanup` method in run.rs)
 - [x] Configuration
   - [x] External config structure
