@@ -1,10 +1,7 @@
-use crate::{
-    event::{Command, Worker},
-    fs::Cache,
-    ui::Component,
-};
+use crate::{context::Context, event::Command, fs::Cache, ui::Component};
 
 use crossterm::{cursor, execute, terminal};
+
 use tokio::sync::Mutex;
 use tui::{
     backend::CrosstermBackend,
@@ -27,12 +24,12 @@ pub type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
 
 pub struct Painter {
     terminal: Terminal,
-    context: Box<Context>,
+    context: Arc<Mutex<Context>>,
     command: Command,
 }
 
 impl Painter {
-    pub fn new(context: Box<Context>) -> crossterm::Result<Self> {
+    pub fn new(context: Arc<Mutex<Context>>) -> crossterm::Result<Self> {
         let mut stdout = stdout();
         execute!(
             stdout,
@@ -54,13 +51,15 @@ impl Painter {
     }
 
     pub async fn update(&mut self) {
-        if let Ok(command) = self.context.worker.lock().await.receive_command().await {
+        if let Ok(command) = self.context.lock().await.worker.receive_command().await {
             self.command = command
         };
     }
 
     pub async fn render(&mut self, cache: &Cache, path: &Path) -> Result<(), Box<dyn Error>> {
         let command = self.command.to_string();
+        let config = self.context.lock().await.config.clone();
+
         self.as_mut().draw(|frame| {
             let vertical_chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -82,10 +81,10 @@ impl Painter {
             let title = &directory.path;
             let body = directory.to_string();
 
-            let widget = directory.parent(&self.context.config)?.unwrap().draw();
+            let widget = directory.parent(&config).unwrap().unwrap().draw();
             frame.render_widget(widget, horizontal_chunks[0]);
 
-            let widget: Paragraph = directory.draw();
+            let widget = directory.draw();
             frame.render_widget(widget, horizontal_chunks[1]);
             frame.render_widget(
                 default_block.clone().title("[ Preview ]"),

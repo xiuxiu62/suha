@@ -133,8 +133,8 @@ impl Display for Directory {
     }
 }
 
-impl Component<Paragraph> for Directory {
-    fn draw(&self) -> Paragraph {
+impl Component<Paragraph<'static>> for Directory {
+    fn draw(&self) -> Paragraph<'static> {
         let title = format!("[ {} ]", self.path.to_string_lossy().as_ref());
         let body = self.to_string();
 

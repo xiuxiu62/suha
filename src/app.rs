@@ -4,12 +4,15 @@ use crate::{
     ui::Painter,
 };
 
-use tokio::time::{sleep, Duration};
+use tokio::{
+    sync::Mutex,
+    time::{sleep, Duration},
+};
 
-use std::{error::Error, path::PathBuf};
+use std::{error::Error, path::PathBuf, sync::Arc};
 
 pub struct App {
-    context: Box<Context>,
+    context: Arc<Mutex<Context>>,
     painter: Painter,
     current_file: PathBuf,
     fps: u64,
@@ -17,8 +20,8 @@ pub struct App {
 
 impl App {
     pub async fn new(file_path: PathBuf, fps: u64) -> crossterm::Result<App> {
-        let context = Box::new(Context::new()?);
-        let painter = Painter::new(context)?;
+        let context = Arc::new(Mutex::new(Context::new()?));
+        let painter = Painter::new(context.clone())?;
 
         Ok(App {
             context,
@@ -29,10 +32,11 @@ impl App {
     }
 
     pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
-        let config = &self.context.config;
         self.context
+            .lock()
+            .await
             .cache
-            .populate_to_root(&self.current_file, config)?;
+            .populate_to_root(&self.current_file, &self.context.lock().await.config)?;
 
         if let Err(e) = self.event_loop().await {
             eprintln!("{}", e)
@@ -62,13 +66,13 @@ impl App {
         self.painter.update().await;
     }
 
-    async fn render(&mut self) -> crossterm::Result<()> {
-        let cache = &self.context.cache;
+    async fn render(&mut self) -> Result<(), Box<dyn Error>> {
+        let cache = &self.context.lock().await.cache;
         self.painter.render(cache, &self.current_file).await
     }
 
     async fn handle_event(&mut self) -> SendResult<bool, Command> {
-        self.context.worker.lock().await.handle_event().await
+        self.context.lock().await.worker.handle_event().await
     }
 
     async fn cleanup(&mut self) -> crossterm::Result<()> {

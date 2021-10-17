@@ -1,5 +1,5 @@
 use tui::widgets::Widget;
 
-pub trait Component<T> {
-    fn draw(&self) -> T;
+pub trait Component<W: Widget> {
+    fn draw(&self) -> W;
 }

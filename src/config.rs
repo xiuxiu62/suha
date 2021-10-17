@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::{fs, path::PathBuf};
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub show_hidden: bool,
