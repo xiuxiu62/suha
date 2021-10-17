@@ -9,7 +9,7 @@ use tokio::time::{sleep, Duration};
 use std::{error::Error, path::PathBuf};
 
 pub struct App {
-    context: Context,
+    context: Box<Context>,
     painter: Painter,
     current_file: PathBuf,
     fps: u64,
@@ -17,8 +17,8 @@ pub struct App {
 
 impl App {
     pub async fn new(file_path: PathBuf, fps: u64) -> crossterm::Result<App> {
-        let context = Context::new()?;
-        let painter = Painter::new(context.worker.clone())?;
+        let context = Box::new(Context::new()?);
+        let painter = Painter::new(context)?;
 
         Ok(App {
             context,

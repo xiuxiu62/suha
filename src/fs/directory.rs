@@ -1,8 +1,16 @@
 use super::{Entry, Metadata};
-use crate::config::Config;
+use crate::{config::Config, ui::Component};
+
+use tui::{
+    buffer::Buffer,
+    layout::Rect,
+    widgets::{Block, Paragraph, Widget},
+};
+
 use std::{
     fmt::Display,
-    fs, io, path,
+    fs, io,
+    path::{self, Path},
     slice::{Iter, IterMut},
 };
 
@@ -55,6 +63,14 @@ impl Directory {
         self.index = index;
 
         Ok(())
+    }
+
+    pub fn parent(&self, config: &Config) -> io::Result<Option<Self>> {
+        if let Some(path) = self.path.parent() {
+            Ok(Some(Directory::new(path.to_path_buf(), config)?))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn iter(&self) -> Iter<Entry> {
@@ -114,5 +130,14 @@ impl Display for Directory {
             .fold(String::new(), |acc, file| format!("{}\n{}", acc, file));
 
         write!(f, "{}", body)
+    }
+}
+
+impl Component<Paragraph> for Directory {
+    fn draw(&self) -> Paragraph {
+        let title = format!("[ {} ]", self.path.to_string_lossy().as_ref());
+        let body = self.to_string();
+
+        Paragraph::new(body).block(Block::default().title(title))
     }
 }

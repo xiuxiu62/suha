@@ -1,6 +1,7 @@
 use crate::{
     event::{Command, Worker},
     fs::Cache,
+    ui::Component,
 };
 
 use crossterm::{cursor, execute, terminal};
@@ -12,6 +13,7 @@ use tui::{
 };
 
 use std::{
+    error::Error,
     io::{stdout, Stdout},
     path::Path,
     sync::Arc,
@@ -25,12 +27,12 @@ pub type Terminal = tui::Terminal<CrosstermBackend<Stdout>>;
 
 pub struct Painter {
     terminal: Terminal,
-    worker: Arc<Mutex<Worker>>,
+    context: Box<Context>,
     command: Command,
 }
 
 impl Painter {
-    pub fn new(worker: Arc<Mutex<Worker>>) -> crossterm::Result<Self> {
+    pub fn new(context: Box<Context>) -> crossterm::Result<Self> {
         let mut stdout = stdout();
         execute!(
             stdout,
@@ -46,18 +48,18 @@ impl Painter {
 
         Ok(Self {
             terminal,
-            worker,
+            context,
             command: Command::None,
         })
     }
 
     pub async fn update(&mut self) {
-        if let Ok(command) = self.worker.lock().await.receive_command().await {
+        if let Ok(command) = self.context.worker.lock().await.receive_command().await {
             self.command = command
         };
     }
 
-    pub async fn render(&mut self, cache: &Cache, path: &Path) -> crossterm::Result<()> {
+    pub async fn render(&mut self, cache: &Cache, path: &Path) -> Result<(), Box<dyn Error>> {
         let command = self.command.to_string();
         self.as_mut().draw(|frame| {
             let vertical_chunks = Layout::default()
@@ -80,18 +82,11 @@ impl Painter {
             let title = &directory.path;
             let body = directory.to_string();
 
-            frame.render_widget(
-                default_block.clone().title("[ Parent ]"),
-                horizontal_chunks[0],
-            );
-            frame.render_widget(
-                Paragraph::new(body).block(
-                    default_block
-                        .clone()
-                        .title(format!("[ {} ]", title.to_string_lossy().as_ref())),
-                ),
-                horizontal_chunks[1],
-            );
+            let widget = directory.parent(&self.context.config)?.unwrap().draw();
+            frame.render_widget(widget, horizontal_chunks[0]);
+
+            let widget: Paragraph = directory.draw();
+            frame.render_widget(widget, horizontal_chunks[1]);
             frame.render_widget(
                 default_block.clone().title("[ Preview ]"),
                 horizontal_chunks[2],
